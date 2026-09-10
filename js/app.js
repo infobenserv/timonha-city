@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
     vidas.textContent = "5";
     moedas.textContent = "0";
 
-    btnAventura.onclick = function () { window.location href="games/aventura/");
+    btnAventura.onclick = function () { window.location.href="games/aventura/");
     };
 
     btnCorridas.onclick = function () {
