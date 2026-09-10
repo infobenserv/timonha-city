@@ -1,14 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-
 <meta charset="UTF-8">
-
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Timonha City - Aventura</title>
 
@@ -24,12 +18,9 @@ html,
 body {
     margin: 0;
     padding: 0;
-
     width: 100%;
     height: 100%;
-
     overflow: hidden;
-
     background: #102a43;
 }
 
@@ -44,17 +35,13 @@ canvas {
 }
 
 #controles {
-
     position: fixed;
-
     left: 0;
     right: 0;
     bottom: 12px;
 
     display: flex;
-
     justify-content: space-between;
-
     align-items: flex-end;
 
     padding: 0 15px;
@@ -65,56 +52,41 @@ canvas {
 }
 
 .grupo {
-
     display: flex;
-
     gap: 12px;
-
     pointer-events: auto;
 }
 
 .botao {
-
     width: 65px;
     height: 65px;
 
     border: 2px solid white;
-
     border-radius: 50%;
 
     background: rgba(0,0,0,0.55);
 
     color: white;
-
     font-size: 28px;
-
     font-weight: bold;
 
     touch-action: none;
-
     user-select: none;
-
     -webkit-user-select: none;
-
     -webkit-tap-highlight-color: transparent;
 }
 
 .botao:active {
-
     transform: scale(0.90);
-
-    background:
-        rgba(255,255,255,0.30);
+    background: rgba(255,255,255,0.30);
 }
 
 </style>
-
 </head>
 
 <body>
 
 <div id="jogo"></div>
-
 
 <div id="controles">
 
@@ -122,27 +94,23 @@ canvas {
 
         <button
             class="botao"
-            id="esquerda"
-        >
+            id="esquerda">
             ⬅️
         </button>
 
         <button
             class="botao"
-            id="direita"
-        >
+            id="direita">
             ➡️
         </button>
 
     </div>
 
-
     <div class="grupo">
 
         <button
             class="botao"
-            id="pular"
-        >
+            id="pular">
             ⬆️
         </button>
 
@@ -153,39 +121,27 @@ canvas {
 
 <script>
 
-
-/* ======================================
+/* =====================================
    VARIÁVEIS
-====================================== */
+===================================== */
 
 let cena;
-
 let jogador;
-
 let plataformas;
-
-let inimigos;
-
 let teclas;
 
 let esquerdaPressionada = false;
-
 let direitaPressionada = false;
 
 let pontuacao = 0;
-
 let moedasPegas = 0;
-
-let vidas = 5;
 
 let faseFinalizada = false;
 
-let perdendoVida = false;
 
-
-/* ======================================
+/* =====================================
    CONFIGURAÇÃO
-====================================== */
+===================================== */
 
 const configuracao = {
 
@@ -194,7 +150,6 @@ const configuracao = {
     parent: "jogo",
 
     width: 960,
-
     height: 540,
 
     backgroundColor: "#76c893",
@@ -232,22 +187,20 @@ const configuracao = {
 
 
 const jogo =
-    new Phaser.Game(
-        configuracao
-    );
+    new Phaser.Game(configuracao);
 
 
-/* ======================================
+/* =====================================
    PRELOAD
-====================================== */
+===================================== */
 
 function preload() {
 }
 
 
-/* ======================================
+/* =====================================
    CREATE
-====================================== */
+===================================== */
 
 function create() {
 
@@ -273,7 +226,6 @@ function create() {
         540
     );
 
-
     cena.cameras.main.setZoom(
         0.65
     );
@@ -293,60 +245,33 @@ function create() {
     const mapa = [
 
         [180,515,360,50],
-
         [610,515,180,50],
-
         [900,515,180,50],
-
         [1180,515,250,50],
-
         [1510,515,180,50],
-
         [1770,515,350,50],
-
         [2230,515,200,50],
-
         [2540,515,300,50],
-
         [2940,515,180,50],
-
         [3220,515,400,50],
-
         [3700,515,220,50],
-
         [4000,515,350,50],
-
         [4430,515,180,50],
-
         [4720,515,300,50],
-
         [5140,515,220,50],
-
         [5450,515,500,50],
 
-
         [700,390,150,30],
-
         [1050,350,160,30],
-
         [1400,400,150,30],
-
         [1950,380,160,30],
-
         [2350,340,150,30],
-
         [2750,390,160,30],
-
         [3100,350,170,30],
-
         [3550,380,150,30],
-
         [4150,360,160,30],
-
         [4600,390,150,30],
-
         [5000,350,170,30],
-
         [5350,390,160,30]
     ];
 
@@ -383,6 +308,8 @@ function create() {
     );
 
 
+    /* VISUAL DO JOGADOR */
+
     jogador.corpo =
         cena.add.rectangle(
             230,
@@ -402,6 +329,8 @@ function create() {
         );
 
 
+    /* COLISÃO */
+
     cena.physics.add.collider(
         jogador,
         plataformas
@@ -414,7 +343,7 @@ function create() {
         cena.input.keyboard.createCursorKeys();
 
 
-    /* CÂMERA */
+    /* CÂMERA SEGUINDO */
 
     cena.cameras.main.startFollow(
         jogador,
@@ -445,69 +374,111 @@ function create() {
     .setScrollFactor(0);
 
 
-    /* CONTROLES */
+    cena.add.text(
+        20,
+        50,
+        "⬅️ ➡️ Mover   ⬆️ Pular",
+        {
+            fontSize: "16px",
+            color: "#ffffff"
+        }
+    )
+    .setScrollFactor(0);
+
+
+    /* CONTROLES DE CELULAR */
 
     configurarControles();
-
-
-    /*
-       TESTE DE MOVIMENTO
-
-       O personagem deve andar
-       sozinho para a direita.
-    */
 
 }
 
 
-/* ======================================
+/* =====================================
    UPDATE
-====================================== */
+===================================== */
 
 function update() {
 
-
-    /*
-       TESTE PRINCIPAL
-
-       Se a física estiver funcionando,
-       o personagem anda sozinho.
-    */
-
     if (
-        jogador &&
-        jogador.body
+        !jogador ||
+        !jogador.body ||
+        faseFinalizada
     ) {
-
-        jogador.setVelocityX(
-            200
-        );
+        return;
     }
 
 
-    /* VISUAL */
+    /* =================================
+       MOVIMENTO
+    ================================= */
+
+    let velocidade = 0;
+
 
     if (
-        jogador
+        teclas &&
+        teclas.left &&
+        teclas.left.isDown
     ) {
 
-        jogador.corpo.setPosition(
-            jogador.x,
-            jogador.y
-        );
+        velocidade = -250;
 
-
-        jogador.olho.setPosition(
-            jogador.x + 10,
-            jogador.y - 10
-        );
     }
 
 
-    /* QUEDA */
+    if (
+        teclas &&
+        teclas.right &&
+        teclas.right.isDown
+    ) {
+
+        velocidade = 250;
+
+    }
+
+
+    /* CONTROLE TOUCH */
+
+    if (esquerdaPressionada) {
+
+        velocidade = -250;
+
+    }
+
+
+    if (direitaPressionada) {
+
+        velocidade = 250;
+
+    }
+
+
+    jogador.setVelocityX(
+        velocidade
+    );
+
+
+    /* =================================
+       VISUAL
+    ================================= */
+
+    jogador.corpo.setPosition(
+        jogador.x,
+        jogador.y
+    );
+
+
+    jogador.olho.setPosition(
+        jogador.x + 10,
+        jogador.y - 10
+    );
+
+
+    /* =================================
+       QUEDA
+    ================================= */
 
     if (
-        jogador &&
         jogador.y > 600
     ) {
 
@@ -522,12 +493,31 @@ function update() {
         );
     }
 
+
+    /* =================================
+       FINAL
+    ================================= */
+
+    if (
+        jogador.x >= 5850
+    ) {
+
+        faseFinalizada = true;
+
+        jogador.setVelocity(
+            0,
+            0
+        );
+
+        mostrarVitoria();
+    }
+
 }
 
 
-/* ======================================
+/* =====================================
    PLATAFORMA
-====================================== */
+===================================== */
 
 function criarPlataforma(
     x,
@@ -555,15 +545,15 @@ function criarPlataforma(
     plataformas.add(
         plataforma
     );
+
 }
 
 
-/* ======================================
+/* =====================================
    CENÁRIO
-====================================== */
+===================================== */
 
 function criarCenario() {
-
 
     cena.add.circle(
         820,
@@ -584,20 +574,20 @@ function criarCenario() {
             x,
             430
         );
+
     }
 
 }
 
 
-/* ======================================
+/* =====================================
    ÁRVORE
-====================================== */
+===================================== */
 
 function criarArvore(
     x,
     y
 ) {
-
 
     cena.add.rectangle(
         x,
@@ -630,15 +620,15 @@ function criarArvore(
         30,
         0x388e3c
     );
+
 }
 
 
-/* ======================================
+/* =====================================
    CONTROLES
-====================================== */
+===================================== */
 
 function configurarControles() {
-
 
     const esquerda =
         document.getElementById(
@@ -658,26 +648,28 @@ function configurarControles() {
         );
 
 
+    /* ESQUERDA */
+
     esquerda.addEventListener(
         "pointerdown",
-        function(evento) {
+        function(e) {
 
-            evento.preventDefault();
+            e.preventDefault();
 
-            esquerdaPressionada =
-                true;
+            esquerdaPressionada = true;
+
         }
     );
 
 
     esquerda.addEventListener(
         "pointerup",
-        function(evento) {
+        function(e) {
 
-            evento.preventDefault();
+            e.preventDefault();
 
-            esquerdaPressionada =
-                false;
+            esquerdaPressionada = false;
+
         }
     );
 
@@ -686,32 +678,34 @@ function configurarControles() {
         "pointercancel",
         function() {
 
-            esquerdaPressionada =
-                false;
+            esquerdaPressionada = false;
+
         }
     );
 
 
+    /* DIREITA */
+
     direita.addEventListener(
         "pointerdown",
-        function(evento) {
+        function(e) {
 
-            evento.preventDefault();
+            e.preventDefault();
 
-            direitaPressionada =
-                true;
+            direitaPressionada = true;
+
         }
     );
 
 
     direita.addEventListener(
         "pointerup",
-        function(evento) {
+        function(e) {
 
-            evento.preventDefault();
+            e.preventDefault();
 
-            direitaPressionada =
-                false;
+            direitaPressionada = false;
+
         }
     );
 
@@ -720,17 +714,20 @@ function configurarControles() {
         "pointercancel",
         function() {
 
-            direitaPressionada =
-                false;
+            direitaPressionada = false;
+
         }
     );
 
+
+    /* PULO */
 
     pular.addEventListener(
         "pointerdown",
-        function(evento) {
+        function(e) {
 
-            evento.preventDefault();
+            e.preventDefault();
+
 
             if (
                 jogador &&
@@ -741,11 +738,14 @@ function configurarControles() {
                 jogador.setVelocityY(
                     -500
                 );
+
             }
 
         }
     );
 
+
+    /* SOLTAR QUALQUER BOTÃO */
 
     window.addEventListener(
         "pointerup",
@@ -756,8 +756,76 @@ function configurarControles() {
 
             direitaPressionada =
                 false;
+
         }
     );
+
+}
+
+
+/* =====================================
+   VITÓRIA
+===================================== */
+
+function mostrarVitoria() {
+
+    const largura =
+        cena.cameras.main.width;
+
+
+    const altura =
+        cena.cameras.main.height;
+
+
+    cena.add.rectangle(
+        480,
+        270,
+        700,
+        300,
+        0x000000,
+        0.85
+    )
+    .setScrollFactor(0);
+
+
+    cena.add.text(
+        480,
+        210,
+        "🏆 FASE CONCLUÍDA!",
+        {
+            fontSize: "42px",
+            color: "#ffffff",
+            fontStyle: "bold"
+        }
+    )
+    .setOrigin(0.5)
+    .setScrollFactor(0);
+
+
+    cena.add.text(
+        480,
+        280,
+        "Você chegou ao final!",
+        {
+            fontSize: "25px",
+            color: "#ffffff"
+        }
+    )
+    .setOrigin(0.5)
+    .setScrollFactor(0);
+
+
+    cena.add.text(
+        480,
+        340,
+        "🌳 Timonha City",
+        {
+            fontSize: "22px",
+            color: "#ffffff"
+        }
+    )
+    .setOrigin(0.5)
+    .setScrollFactor(0);
 
 }
 
