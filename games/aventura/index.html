@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0,
+                   maximum-scale=1.0, user-scalable=no">
+
+    <title>Timonha City - Reino Verde</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #111;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+            touch-action: none;
+        }
+
+        #game {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .controles {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 25px;
+            pointer-events: none;
+        }
+
+        .grupo {
+            display: flex;
+            gap: 15px;
+            pointer-events: auto;
+        }
+
+        .botao {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 3px solid white;
+            background: rgba(0, 0, 0, 0.45);
+            color: white;
+            font-size: 30px;
+            font-weight: bold;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .botao:active {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(0.92);
+        }
+
+        @media (min-width: 800px) {
+            .botao {
+                opacity: 0.65;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="game"></div>
+
+<div class="controles">
+
+    <div class="grupo">
+        <button class="botao" id="esquerda">◀</button>
+        <button class="botao" id="direita">▶</button>
+    </div>
+
+    <div class="grupo">
+        <button class="botao" id="pular">▲</button>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+
+<script>
+
+const config = {
+    type: Phaser.AUTO,
+
+    width: 960,
+    height: 540,
+
+    parent: "game",
+
+    backgroundColor: "#65c466",
+
+    physics: {
+        default: "arcade",
+
+        arcade: {
+            gravity: {
+                y: 900
+            },
+
+            debug: false
+        }
+    },
+
+    scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH
+    },
+
+    scene: {
+        preload: preload,
+        create: create,
+        update: update
+    }
+};
+
+const game = new Phaser.Game(config);
+
+let jogador;
+let plataformas;
+let moedas;
+let teclas;
+
+let esquerda = false;
+let direita = false;
+
+let pontuacao = 0;
+let vidas = 5;
+let moedasPegas = 0;
+
+let textoPontuacao;
+let textoVidas;
+let textoMoedas;
+
+let faseFinalizada = false;
+let perdendoVida = false;
+
+function preload() {
+    // Não precisamos de imagens externas nesta primeira versão.
+}
+
+function create() {
+
+    const cena = this;
+
+    faseFinalizada = false;
+    perdendoVida = false;
+
+    // =========================
+    // FUNDO
+    // =========================
+
+    this.add.rectangle(
+        480,
+        270,
+        960,
+        540,
+        0x65c466
+    );
+
+    this.add.circle(
+        820,
+        80,
+        45,
+        0xffdf55
+    );
+
+    criarNuvem(this, 150, 90);
+    criarNuvem(this, 450, 130);
+    criarNuvem(this, 700, 70);
+
+    criarArvore(this, 80, 420);
+    criarArvore(this, 880, 420);
+    criarArvore(this, 600, 420);
+
+    // =========================
+    // PLATAFORMAS
+    // =========================
+
+    plataformas = this.physics.add.staticGroup();
+
+    criarPlataforma(this, 480, 515, 960, 50);
+    criarPlataforma(this, 300, 420, 180, 25);
+    criarPlataforma(this, 560, 350, 180, 25);
+    criarPlataforma(this, 800, 280, 160, 25);
+
+    // =========================
+    // JOGADOR
+    // =========================
+
+    jogador = this.physics.add.sprite(
+        100,
+        400,
+        null
+    );
+
+    jogador.setSize(38, 60);
+    jogador.setDisplaySize(38, 60);
+    jogador.setCollideWorldBounds(true);
+    jogador.setBounce(0.05);
+
+    jogador.corpoVisual = this.add.rectangle(
+        jogador.x,
+        jogador.y,
+        38,
+        60,
+        0x3155d9
+    );
+
+    jogador.cabeca = this.add.circle(
+        jogador.x,
+        jogador.y - 25,
+        15,
+        0xffc49b
+    );
+
+    this.physics.add.collider(
+        jogador,
+        plataformas
+    );
+
+    // =========================
+    // MOEDAS
+    // =========================
+
+    moedas = this.physics.add.group();
+
+    criarMoeda(this, 300, 370);
+    criarMoeda(this, 560, 300);
+    criarMoeda(this, 800, 230);
+
+    this.physics.add.overlap(
+        jogador,
+        moedas,
+        pegarMoeda,
+        null,
+        this
+    );
+
+    // =========================
+    // CONTROLES
+    // =========================
+
+    teclas = this.input.keyboard.createCursorKeys();
+
+    // =========================
+    // TEXTOS
+    // =========================
+
+    textoPontuacao = this.add.text(
+        20,
+        20,
+        "⭐ Pontos: " + pontuacao,
+        {
+            fontSize: "22px",
+            color: "#ffffff",
+            stroke: "#000000",
+            strokeThickness: 4
+        }
+    );
+
+    textoMoedas = this.add.text(
+        20,
+        50,
+        "🪙 Moedas: " + moedasPegas,
+        {
+            fontSize: "22px",
+            color: "#ffffff",
+            stroke: "#000000",
+            strokeThickness: 4
+        }
+    );
+
+    textoVidas = this.add.text(
+        20,
+        80,
+        "❤️ Vidas: " + vidas,
+        {
+            fontSize: "22px",
+            color: "#ffffff",
+            stroke: "#000000",
+            strokeThickness: 4
+        }
+    );
+
+    this.add.text(
+        480,
+        25,
+        "🌳 REINO VERDE",
+        {
+            fontSize: "26px",
+            color: "#ffffff",
+            stroke: "#000000",
+            strokeThickness: 5
+        }
+    ).setOrigin(0.5, 0);
+
+    // =========================
+    // CHEGADA
+    // =========================
+
+    this.add.rectangle(
+        900,
+        425,
+        35,
+        80,
+        0x7a4b28
+    );
+
+    this.add.rectangle(
+        940,
+        385,
+        110,
+        55,
+        0xffd84d
+    );
+
+    this.add.text(
+        940,
+        398,
+        "CHEGADA!",
+        {
+            fontSize: "16px",
+            fontStyle: "bold",
+            color: "#000000"
+        }
+    ).setOrigin(0.5);
+
+    // =========================
+    // BOTÕES DO CELULAR
+    // =========================
+
+    configurarBotao(
+        "esquerda",
+        () => {
+            esquerda = true;
+        },
+        () => {
+            esquerda = false;
+        }
+    );
+
+    configurarBotao(
+        "direita",
+        () => {
+            direita = true;
+        },
+        () => {
+            direita = false;
+        }
+    );
+
+    configurarBotao(
+        "pular",
+        () => {
+
+            if (
+                jogador.body.blocked.down &&
+                !perdendoVida &&
+                !faseFinalizada
+            ) {
+
+                jogador.setVelocityY(-480);
+
+            }
+
+        },
+        () => {}
+    );
+}
+
+function update() {
+
+    if (!jogador) return;
+
+    if (faseFinalizada || perdendoVida) {
+        return;
+    }
+
+    // =========================
+    // MOVIMENTO
+    // =========================
+
+    if (
+        teclas.left.isDown ||
+        esquerda
+    ) {
+
+        jogador.setVelocityX(-220);
+
+    }
+
+    else if (
+        teclas.right.isDown ||
+        direita
+    ) {
+
+        jogador.setVelocityX(220);
+
+    }
+
+    else {
+
+        jogador.setVelocityX(0);
+
+    }
+
+    // =========================
+    // PULO
+    // =========================
+
+    if (
+        Phaser.Input.Keyboard.JustDown(
+            teclas.up
+        )
+    ) {
+
+        if (jogador.body.blocked.down) {
+
+            jogador.setVelocityY(-480);
+
+        }
+
+    }
+
+    // =========================
+    // ATUALIZA VISUAL
+    // =========================
+
+    if (jogador.corpoVisual) {
+
+        jogador.corpoVisual.x = jogador.x;
+        jogador.corpoVisual.y = jogador.y;
+
+        jogador.cabeca.x = jogador.x;
+        jogador.cabeca.y = jogador.y - 25;
+
+    }
+
+    // =========================
+    // QUEDA
+    // =========================
+
+    if (jogador.y > 560) {
+
+        perderVida();
+
+        return;
+    }
+
+    // =========================
+    // CHEGADA
+    // =========================
+
+    if (jogador.x >= 880) {
+
+        finalizarFase();
+
+    }
+
+}
+
+// =========================
+// PERDER VIDA
+// =========================
+
+function perderVida() {
+
+    if (perdendoVida || faseFinalizada) {
+        return;
+    }
+
+    perdendoVida = true;
+
+    vidas--;
+
+    if (textoVidas) {
+
+        textoVidas.setText(
+            "❤️ Vidas: " + vidas
+        );
+
+    }
+
+    jogador.setVelocity(0);
+
+    // =========================
+    // GAME OVER
+    // =========================
+
+    if (vidas <= 0) {
+
+        mostrarGameOver();
+
+        return;
+    }
+
+    // =========================
+    // RECOMEÇAR POSIÇÃO
+    // =========================
+
+    jogador.setPosition(
+        100,
+        400
+    );
+
+    jogador.setVelocity(
+        0,
+        0
+    );
+
+    jogador.corpoVisual.x = 100;
+    jogador.corpoVisual.y = 400;
+
+    jogador.cabeca.x = 100;
+    jogador.cabeca.y = 375;
+
+    // Pequena pausa antes de continuar
+
+    setTimeout(() => {
+
+        perdendoVida = false;
+
+    }, 700);
+}
+
+// =========================
+// GAME OVER
+// =========================
+
+function mostrarGameOver() {
+
+    faseFinalizada = true;
+
+    jogador.setVelocity(0);
+
+    const mensagem =
+        document.createElement("div");
+
+    mensagem.style.position = "fixed";
+    mensagem.style.left = "50%";
+    mensagem.style.top = "50%";
+    mensagem.style.transform =
+        "translate(-50%, -50%)";
+
+    mensagem.style.background =
+        "rgba(0,0,0,0.94)";
+
+    mensagem.style.color = "white";
+
+    mensagem.style.padding = "30px";
+
+    mensagem.style.borderRadius = "20px";
+
+    mensagem.style.textAlign = "center";
+
+    mensagem.style.fontFamily =
+        "Arial, sans-serif";
+
+    mensagem.style.fontSize = "24px";
+
+    mensagem.style.zIndex = "9999";
+
+    mensagem.innerHTML =
+        "💀 GAME OVER<br><br>" +
+        "🌳 Reino Verde<br>" +
+        "⭐ Pontos: " + pontuacao +
+        "<br>🪙 Moedas: " + moedasPegas +
+        "<br><br>" +
+        "<button onclick='location.reload()' " +
+        "style='padding:12px 25px;font-size:18px'>" +
+        "Tentar novamente" +
+        "</button>";
+
+    document.body.appendChild(
+        mensagem
+    );
+}
+
+// =========================
+// PLATAFORMA
+// =========================
+
+function criarPlataforma(
+    cena,
+    x,
+    y,
+    largura,
+    altura
+) {
+
+    const plataforma =
+        cena.add.rectangle(
+            x,
+            y,
+            largura,
+            altura,
+            0x704214
+        );
+
+    cena.physics.add.existing(
+        plataforma,
+        true
+    );
+
+    plataformas.add(
+        plataforma
+    );
+
+    cena.add.rectangle(
+        x,
+        y - altura / 2 + 5,
+        largura,
+        10,
+        0x42a83f
+    );
+}
+
+// =========================
+// MOEDA
+// =========================
+
+function criarMoeda(
+    cena,
+    x,
+    y
+) {
+
+    const moeda =
+        cena.add.circle(
+            x,
+            y,
+            13,
+            0xffd700
+        );
+
+    cena.physics.add.existing(
+        moeda
+    );
+
+    moeda.body.setCircle(13);
+
+    moedas.add(
+        moeda
+    );
+}
+
+// =========================
+// PEGAR MOEDA
+// =========================
+
+function pegarMoeda(
+    jogador,
+    moeda
+) {
+
+    if (perdendoVida || faseFinalizada) {
+        return;
+    }
+
+    moeda.destroy();
+
+    moedasPegas++;
+
+    pontuacao += 100;
+
+    textoPontuacao.setText(
+        "⭐ Pontos: " + pontuacao
+    );
+
+    textoMoedas.setText(
+        "🪙 Moedas: " + moedasPegas
+    );
+}
+
+// =========================
+// ÁRVORE
+// =========================
+
+function criarArvore(
+    cena,
+    x,
+    y
+) {
+
+    cena.add.rectangle(
+        x,
+        y,
+        25,
+        90,
+        0x75451f
+    );
+
+    cena.add.circle(
+        x,
+        y - 65,
+        50,
+        0x267a35
+    );
+
+    cena.add.circle(
+        x - 35,
+        y - 45,
+        35,
+        0x319b3e
+    );
+
+    cena.add.circle(
+        x + 35,
+        y - 45,
+        35,
+        0x319b3e
+    );
+}
+
+// =========================
+// NUVEM
+// =========================
+
+function criarNuvem(
+    cena,
+    x,
+    y
+) {
+
+    cena.add.circle(
+        x,
+        y,
+        25,
+        0xffffff
+    );
+
+    cena.add.circle(
+        x + 30,
+        y,
+        35,
+        0xffffff
+    );
+
+    cena.add.circle(
+        x + 60,
+        y,
+        25,
+        0xffffff
+    );
+
+    cena.add.rectangle(
+        x + 30,
+        y + 15,
+        80,
+        25,
+        0xffffff
+    );
+}
+
+// =========================
+// BOTÕES
+// =========================
+
+function configurarBotao(
+    id,
+    pressionar,
+    soltar
+) {
+
+    const botao =
+        document.getElementById(id);
+
+    botao.addEventListener(
+        "touchstart",
+        function(e) {
+
+            e.preventDefault();
+
+            pressionar();
+
+        },
+        { passive: false }
+    );
+
+    botao.addEventListener(
+        "touchend",
+        function(e) {
+
+            e.preventDefault();
+
+            soltar();
+
+        },
+        { passive: false }
+    );
+
+    botao.addEventListener(
+        "mousedown",
+        function() {
+
+            pressionar();
+
+        }
+    );
+
+    botao.addEventListener(
+        "mouseup",
+        function() {
+
+            soltar();
+
+        }
+    );
+}
+
+// =========================
+// FASE CONCLUÍDA
+// =========================
+
+function finalizarFase() {
+
+    if (faseFinalizada) {
+        return;
+    }
+
+    faseFinalizada = true;
+
+    jogador.setVelocity(0);
+
+    const mensagem =
+        document.createElement("div");
+
+    mensagem.style.position = "fixed";
+    mensagem.style.left = "50%";
+    mensagem.style.top = "50%";
+    mensagem.style.transform =
+        "translate(-50%, -50%)";
+
+    mensagem.style.background =
+        "rgba(0,0,0,0.9)";
+
+    mensagem.style.color = "white";
+
+    mensagem.style.padding = "30px";
+
+    mensagem.style.borderRadius = "20px";
+
+    mensagem.style.textAlign = "center";
+
+    mensagem.style.fontFamily =
+        "Arial, sans-serif";
+
+    mensagem.style.fontSize = "24px";
+
+    mensagem.style.zIndex = "9999";
+
+    mensagem.innerHTML =
+        "🏆 FASE CONCLUÍDA!<br><br>" +
+        "🌳 Reino Verde<br>" +
+        "⭐ Pontos: " + pontuacao +
+        "<br>🪙 Moedas: " + moedasPegas +
+        "<br>❤️ Vidas restantes: " + vidas +
+        "<br><br>" +
+        "<button onclick='location.reload()' " +
+        "style='padding:12px 25px;font-size:18px'>" +
+        "Jogar novamente" +
+        "</button>";
+
+    document.body.appendChild(
+        mensagem
+    );
+}
+
+</script>
+
+</body>
+</html>
