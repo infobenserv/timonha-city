@@ -1,0 +1,147 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    min-height: 100vh;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(180deg, #102a43, #1d70a2);
+    color: white;
+}
+
+#app {
+    width: 100%;
+    min-height: 100vh;
+}
+
+.tela {
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.cabecalho {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    max-width: 1000px;
+    margin: auto;
+}
+
+.cabecalho h1 {
+    font-size: clamp(28px, 8vw, 55px);
+    letter-spacing: 3px;
+    text-shadow: 3px 3px 0 #071522;
+}
+
+.cabecalho p {
+    margin-top: 5px;
+    opacity: 0.8;
+}
+
+.status-jogador {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 15px;
+    border-radius: 15px;
+    min-width: 130px;
+}
+
+.boas-vindas {
+    max-width: 800px;
+    margin: 60px auto 30px;
+    text-align: center;
+}
+
+.boas-vindas h2 {
+    font-size: clamp(24px, 6vw, 40px);
+    margin-bottom: 10px;
+}
+
+.boas-vindas p {
+    opacity: 0.85;
+}
+
+.jogos {
+    width: min(95%, 850px);
+    margin: auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.cartao-jogo {
+    min-height: 220px;
+    padding: 25px 15px;
+    border: none;
+    border-radius: 22px;
+    background: rgba(255, 255, 255, 0.12);
+    color: white;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+
+    transition: transform 0.15s, background 0.15s;
+}
+
+.cartao-jogo:active {
+    transform: scale(0.96);
+}
+
+.cartao-jogo:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.icone {
+    font-size: 55px;
+}
+
+.titulo {
+    font-size: 22px;
+    font-weight: bold;
+}
+
+.descricao {
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+@media (max-width: 700px) {
+
+    .cabecalho {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .status-jogador {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-around;
+    }
+
+    .boas-vindas {
+        margin-top: 40px;
+    }
+
+    .jogos {
+        grid-template-columns: 1fr;
+        max-width: 420px;
+    }
+
+    .cartao-jogo {
+        min-height: 150px;
+    }
+
+    .icone {
+        font-size: 45px;
+    }
+}
