@@ -1,0 +1,1880 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<title>Corrida Urbana Multiplayer</title>
+
+<style>
+*{box-sizing:border-box}
+html,body{
+    margin:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:#111;
+    font-family:Arial,sans-serif;
+    touch-action:none;
+}
+
+#game{
+    position:fixed;
+    inset:0;
+}
+
+#hud{
+    position:fixed;
+    top:10px;
+    left:10px;
+    z-index:20;
+    color:white;
+    background:rgba(0,0,0,.65);
+    padding:10px 14px;
+    border-radius:10px;
+    font-size:14px;
+    line-height:1.5;
+    min-width:230px;
+}
+
+.playerHud{
+    margin-bottom:6px;
+}
+
+#message{
+    position:fixed;
+    left:50%;
+    top:45%;
+    transform:translate(-50%,-50%);
+    z-index:50;
+    color:white;
+    background:rgba(0,0,0,.82);
+    padding:25px 35px;
+    border-radius:15px;
+    text-align:center;
+    font-size:24px;
+    display:none;
+}
+
+#startScreen{
+    position:fixed;
+    inset:0;
+    z-index:100;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(0,0,0,.75);
+}
+
+.panel{
+    background:#171717;
+    color:white;
+    padding:25px;
+    border-radius:18px;
+    text-align:center;
+    width:min(420px,90%);
+}
+
+.panel h1{
+    margin-top:0;
+}
+
+button{
+    border:0;
+    border-radius:12px;
+    padding:13px 22px;
+    margin:6px;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+#startBtn{
+    background:#f2c94c;
+}
+
+#soundBtn{
+    background:#555;
+    color:white;
+}
+
+#countdown{
+    position:fixed;
+    inset:0;
+    z-index:80;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    color:white;
+    font-size:100px;
+    font-weight:bold;
+    text-shadow:0 4px 15px #000;
+}
+
+.controls{
+    position:fixed;
+    bottom:15px;
+    z-index:30;
+    display:flex;
+    gap:8px;
+}
+
+#controls1{
+    left:15px;
+}
+
+#controls2{
+    right:15px;
+}
+
+.controlGroup{
+    display:grid;
+    grid-template-columns:55px 55px 55px;
+    grid-template-rows:55px 55px;
+    gap:5px;
+}
+
+.control{
+    width:55px;
+    height:55px;
+    border-radius:14px;
+    border:2px solid rgba(255,255,255,.3);
+    background:rgba(0,0,0,.5);
+    color:white;
+    font-size:22px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    user-select:none;
+}
+
+.up{grid-column:2}
+.left{grid-column:1}
+.down{grid-column:2}
+.right{grid-column:3}
+
+.nitro{
+    background:rgba(0,100,255,.55);
+    font-size:15px;
+}
+
+@media(max-width:700px){
+    .controls{
+        transform:scale(.75);
+        transform-origin:bottom;
+    }
+
+    #controls1{
+        left:0;
+    }
+
+    #controls2{
+        right:0;
+    }
+
+    #hud{
+        font-size:12px;
+        min-width:200px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div id="game"></div>
+
+<div id="hud">
+    <div id="p1Hud" class="playerHud">
+        🟡 P1 — Velocidade: 0<br>
+        Volta: 1/2 — Checkpoint: 1
+    </div>
+
+    <div id="p2Hud" class="playerHud">
+        🔵 P2 — Velocidade: 0<br>
+        Volta: 1/2 — Checkpoint: 1
+    </div>
+
+    <div id="policeHud">🚓 Polícia: aguardando</div>
+</div>
+
+<div id="countdown">3</div>
+
+<div id="message"></div>
+
+<div id="startScreen">
+    <div class="panel">
+        <h1>🏁 Corrida Urbana</h1>
+
+        <p>
+            Até <b>2 jogadores</b> podem correr na mesma corrida.
+        </p>
+
+        <p>
+            🟡 P1: WASD<br>
+            🔵 P2: Setas
+        </p>
+
+        <button id="startBtn">INICIAR CORRIDA</button>
+        <button id="soundBtn">🔊 Som ligado</button>
+    </div>
+</div>
+
+<!-- CONTROLES P1 -->
+<div id="controls1" class="controls">
+    <div class="controlGroup">
+        <div class="control up" data-player="1" data-key="up">▲</div>
+        <div class="control left" data-player="1" data-key="left">◀</div>
+        <div class="control down" data-player="1" data-key="down">▼</div>
+        <div class="control right" data-player="1" data-key="right">▶</div>
+    </div>
+    <div class="control nitro" data-player="1" data-key="nitro">NITRO</div>
+</div>
+
+<!-- CONTROLES P2 -->
+<div id="controls2" class="controls">
+    <div class="controlGroup">
+        <div class="control up" data-player="2" data-key="up">▲</div>
+        <div class="control left" data-player="2" data-key="left">◀</div>
+        <div class="control down" data-player="2" data-key="down">▼</div>
+        <div class="control right" data-player="2" data-key="right">▶</div>
+    </div>
+    <div class="control nitro" data-player="2" data-key="nitro">NITRO</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+
+<script>
+
+/* =========================================================
+   CONFIGURAÇÃO
+========================================================= */
+
+const MAP_SIZE = 1800;
+const ROAD_WIDTH = 28;
+const ROAD_DEPTH = 0.25;
+
+const TOTAL_LAPS = 2;
+
+let scene;
+let camera;
+let renderer;
+let clock;
+
+let raceStarted = false;
+let raceFinished = false;
+let policeActive = false;
+
+let players = [];
+let aiCars = [];
+let policeCars = [];
+
+let checkpoints = [];
+
+let audioEnabled = true;
+let musicAudio = null;
+let sirenAudio = null;
+
+/* =========================================================
+   CIDADE / REDE DE RUAS
+========================================================= */
+
+/*
+   Agora não temos um anel gigante.
+
+   Temos uma rede de ruas conectadas.
+   O circuito usa apenas algumas dessas ruas,
+   enquanto as demais formam a cidade.
+*/
+
+const roadLines = [
+    [-600,-450, 600,-450],
+    [-600,-150, 600,-150],
+    [-600, 150, 600, 150],
+    [-600, 450, 600, 450],
+
+    [-600,-450,-600,450],
+    [-300,-450,-300,450],
+    [0,-450,0,450],
+    [300,-450,300,450],
+    [600,-450,600,450]
+];
+
+/*
+   Circuito principal.
+   Cada ponto representa uma rua conectada à seguinte.
+*/
+const circuit = [
+    [-300,-450],
+    [0,-450],
+    [300,-450],
+    [600,-450],
+    [600,-150],
+    [300,-150],
+    [300,150],
+    [600,150],
+    [600,450],
+    [300,450],
+    [0,450],
+    [-300,450],
+    [-600,450],
+    [-600,150],
+    [-300,150],
+    [-300,-150],
+    [-600,-150],
+    [-600,-450]
+];
+
+/* =========================================================
+   THREE
+========================================================= */
+
+function init(){
+
+    scene = new THREE.Scene();
+
+    scene.background = new THREE.Color(0x607080);
+
+    scene.fog = new THREE.Fog(0x607080,500,1500);
+
+    camera = new THREE.PerspectiveCamera(
+        65,
+        innerWidth / innerHeight,
+        .1,
+        3000
+    );
+
+    renderer = new THREE.WebGLRenderer({
+        antialias:true
+    });
+
+    renderer.setSize(innerWidth,innerHeight);
+    renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));
+
+    document.getElementById("game").appendChild(renderer.domElement);
+
+    clock = new THREE.Clock();
+
+    createLights();
+    createGround();
+    createCity();
+    createRoadNetwork();
+    createCars();
+
+    window.addEventListener("resize",resize);
+
+    animate();
+}
+
+/* =========================================================
+   LUZ
+========================================================= */
+
+function createLights(){
+
+    const hemi = new THREE.HemisphereLight(
+        0xffffff,
+        0x444444,
+        1.8
+    );
+
+    scene.add(hemi);
+
+    const sun = new THREE.DirectionalLight(
+        0xffffff,
+        1.5
+    );
+
+    sun.position.set(300,500,200);
+
+    scene.add(sun);
+}
+
+/* =========================================================
+   CHÃO
+========================================================= */
+
+function createGround(){
+
+    const geo = new THREE.PlaneGeometry(
+        MAP_SIZE,
+        MAP_SIZE
+    );
+
+    const mat = new THREE.MeshStandardMaterial({
+        color:0x3d493b
+    });
+
+    const ground = new THREE.Mesh(geo,mat);
+
+    ground.rotation.x=-Math.PI/2;
+
+    ground.position.y=-.15;
+
+    scene.add(ground);
+}
+
+/* =========================================================
+   RUAS
+========================================================= */
+
+function createRoadNetwork(){
+
+    const roadMat = new THREE.MeshStandardMaterial({
+        color:0x242424
+    });
+
+    const lineMat = new THREE.MeshBasicMaterial({
+        color:0xffffff
+    });
+
+    roadLines.forEach(r=>{
+
+        const x1=r[0];
+        const z1=r[1];
+        const x2=r[2];
+        const z2=r[3];
+
+        const dx=x2-x1;
+        const dz=z2-z1;
+
+        const length=Math.sqrt(dx*dx+dz*dz);
+
+        const road = new THREE.Mesh(
+            new THREE.BoxGeometry(
+                Math.abs(dx)>Math.abs(dz) ? length : ROAD_WIDTH,
+                ROAD_DEPTH,
+                Math.abs(dz)>Math.abs(dx) ? length : ROAD_WIDTH
+            ),
+            roadMat
+        );
+
+        road.position.set(
+            (x1+x2)/2,
+            0,
+            (z1+z2)/2
+        );
+
+        scene.add(road);
+
+        /*
+           Faixas centrais
+        */
+
+        const count=Math.floor(length/20);
+
+        for(let i=0;i<count;i++){
+
+            const t=(i+.5)/count;
+
+            const x=x1+(x2-x1)*t;
+            const z=z1+(z2-z1)*t;
+
+            const dash=new THREE.Mesh(
+                new THREE.BoxGeometry(
+                    Math.abs(dx)>Math.abs(dz)?8:0.5,
+                    .03,
+                    Math.abs(dz)>Math.abs(dx)?8:0.5
+                ),
+                lineMat
+            );
+
+            dash.position.set(x,.16,z);
+
+            scene.add(dash);
+        }
+    });
+
+    /*
+       Pequenas áreas de calçada nas ruas
+    */
+
+    roadLines.forEach(r=>{
+
+        const horizontal=Math.abs(r[2]-r[0]) >
+                         Math.abs(r[3]-r[1]);
+
+        const length=horizontal
+            ? Math.abs(r[2]-r[0])
+            : Math.abs(r[3]-r[1]);
+
+        const centerX=(r[0]+r[2])/2;
+        const centerZ=(r[1]+r[3])/2;
+
+        const sidewalkMat=new THREE.MeshStandardMaterial({
+            color:0x858585
+        });
+
+        if(horizontal){
+
+            [-1,1].forEach(side=>{
+
+                const sidewalk=new THREE.Mesh(
+                    new THREE.BoxGeometry(
+                        length,
+                        .15,
+                        5
+                    ),
+                    sidewalkMat
+                );
+
+                sidewalk.position.set(
+                    centerX,
+                    .05,
+                    centerZ+side*(ROAD_WIDTH/2+3)
+                );
+
+                scene.add(sidewalk);
+            });
+
+        }else{
+
+            [-1,1].forEach(side=>{
+
+                const sidewalk=new THREE.Mesh(
+                    new THREE.BoxGeometry(
+                        5,
+                        .15,
+                        length
+                    ),
+                    sidewalkMat
+                );
+
+                sidewalk.position.set(
+                    centerX+side*(ROAD_WIDTH/2+3),
+                    .05,
+                    centerZ
+                );
+
+                scene.add(sidewalk);
+            });
+        }
+    });
+}
+
+/* =========================================================
+   PRÉDIOS
+========================================================= */
+
+function createCity(){
+
+    const colors=[
+        0x777777,
+        0x696969,
+        0x505050,
+        0x858585,
+        0x626262
+    ];
+
+    /*
+       Criamos prédios somente em áreas afastadas
+       das ruas.
+    */
+
+    for(let x=-800;x<=800;x+=70){
+
+        for(let z=-700;z<=700;z+=70){
+
+            if(isNearRoad(x,z,42))
+                continue;
+
+            /*
+               Evita também o centro das ruas do circuito.
+            */
+
+            if(Math.random()<.25)
+                continue;
+
+            const h=25+Math.random()*70;
+
+            const building=new THREE.Mesh(
+                new THREE.BoxGeometry(
+                    48,
+                    h,
+                    48
+                ),
+                new THREE.MeshStandardMaterial({
+                    color:colors[
+                        Math.floor(Math.random()*colors.length)
+                    ]
+                })
+            );
+
+            building.position.set(
+                x+(Math.random()-.5)*10,
+                h/2,
+                z+(Math.random()-.5)*10
+            );
+
+            scene.add(building);
+
+            /*
+               telhado
+            */
+
+            if(Math.random()<.3){
+
+                const roof=new THREE.Mesh(
+                    new THREE.BoxGeometry(
+                        51,
+                        3,
+                        51
+                    ),
+                    new THREE.MeshStandardMaterial({
+                        color:0x333333
+                    })
+                );
+
+                roof.position.set(
+                    building.position.x,
+                    h+1.5,
+                    building.position.z
+                );
+
+                scene.add(roof);
+            }
+        }
+    }
+}
+
+function isNearRoad(x,z,distance){
+
+    for(const r of roadLines){
+
+        const x1=r[0];
+        const z1=r[1];
+        const x2=r[2];
+        const z2=r[3];
+
+        if(x1===x2){
+
+            if(
+                Math.abs(x-x1)<distance &&
+                z>=Math.min(z1,z2)-distance &&
+                z<=Math.max(z1,z2)+distance
+            )
+                return true;
+
+        }else{
+
+            if(
+                Math.abs(z-z1)<distance &&
+                x>=Math.min(x1,x2)-distance &&
+                x<=Math.max(x1,x2)+distance
+            )
+                return true;
+        }
+    }
+
+    return false;
+}
+
+/* =========================================================
+   CARRO
+========================================================= */
+
+function createCar(color){
+
+    const group=new THREE.Group();
+
+    const body=new THREE.Mesh(
+        new THREE.BoxGeometry(4.2,1.15,7.5),
+        new THREE.MeshStandardMaterial({
+            color
+        })
+    );
+
+    body.position.y=1;
+
+    group.add(body);
+
+    const cabin=new THREE.Mesh(
+        new THREE.BoxGeometry(3.2,1.2,3.2),
+        new THREE.MeshStandardMaterial({
+            color:0x111111
+        })
+    );
+
+    cabin.position.set(
+        0,
+        1.9,
+        -.4
+    );
+
+    group.add(cabin);
+
+    const wheelMat=new THREE.MeshStandardMaterial({
+        color:0x111111
+    });
+
+    [
+        [-2,-2.3],
+        [2,-2.3],
+        [-2,2.3],
+        [2,2.3]
+    ].forEach(p=>{
+
+        const wheel=new THREE.Mesh(
+            new THREE.CylinderGeometry(
+                .65,.65,.5,12
+            ),
+            wheelMat
+        );
+
+        wheel.rotation.z=Math.PI/2;
+
+        wheel.position.set(
+            p[0],
+            .65,
+            p[1]
+        );
+
+        group.add(wheel);
+    });
+
+    return group;
+}
+
+/* =========================================================
+   PLAYERS
+========================================================= */
+
+function createPlayers(){
+
+    players=[];
+
+    const p1=createCar(0xffcc00);
+
+    const p2=createCar(0x168cff);
+
+    p1.position.set(
+        circuit[0][0],
+        0,
+        circuit[0][1]-5
+    );
+
+    p2.position.set(
+        circuit[0][0],
+        0,
+        circuit[0][1]+5
+    );
+
+    p1.rotation.y=Math.PI/2;
+    p2.rotation.y=Math.PI/2;
+
+    scene.add(p1);
+    scene.add(p2);
+
+    players.push({
+        mesh:p1,
+        speed:0,
+        maxSpeed:1.25,
+        checkpoint:1,
+        lap:1,
+        finished:false,
+        caught:false,
+        controls:{
+            up:"w",
+            down:"s",
+            left:"a",
+            right:"d",
+            nitro:" "
+        }
+    });
+
+    players.push({
+        mesh:p2,
+        speed:0,
+        maxSpeed:1.25,
+        checkpoint:1,
+        lap:1,
+        finished:false,
+        caught:false,
+        controls:{
+            up:"arrowup",
+            down:"arrowdown",
+            left:"arrowleft",
+            right:"arrowright",
+            nitro:"enter"
+        }
+    });
+}
+
+/* =========================================================
+   IA
+========================================================= */
+
+function createAI(){
+
+    aiCars=[];
+
+    const colors=[
+        0xff3333,
+        0x33dd66,
+        0xffffff
+    ];
+
+    for(let i=0;i<3;i++){
+
+        const car=createCar(colors[i]);
+
+        const pt=circuit[2+i];
+
+        car.position.set(
+            pt[0],
+            0,
+            pt[1]+(i-1)*6
+        );
+
+        scene.add(car);
+
+        aiCars.push({
+            mesh:car,
+            index:2+i,
+            speed:.65+Math.random()*.15,
+            lap:1,
+            finished:false
+        });
+    }
+}
+
+/* =========================================================
+   POLÍCIA
+========================================================= */
+
+function createPolice(){
+
+    policeCars=[];
+
+    for(let i=0;i<3;i++){
+
+        const car=createCar(0xf4f4f4);
+
+        const stripe=new THREE.Mesh(
+            new THREE.BoxGeometry(
+                4.3,
+                .15,
+                7.6
+            ),
+            new THREE.MeshStandardMaterial({
+                color:0x1746a2
+            })
+        );
+
+        stripe.position.y=1.6;
+
+        car.add(stripe);
+
+        const light=new THREE.Mesh(
+            new THREE.BoxGeometry(
+                2.5,
+                .35,
+                .6
+            ),
+            new THREE.MeshStandardMaterial({
+                color:0xff2222
+            })
+        );
+
+        light.position.set(0,2.5,-.5);
+
+        car.add(light);
+
+        car.visible=false;
+
+        scene.add(car);
+
+        policeCars.push({
+            mesh:car,
+            speed:0,
+            target:null,
+            active:false
+        });
+    }
+}
+
+function activatePolice(){
+
+    if(policeActive)
+        return;
+
+    policeActive=true;
+
+    policeCars.forEach((p,i)=>{
+
+        const target=players[0].mesh.position;
+
+        p.mesh.position.set(
+            target.x-30-i*10,
+            0,
+            target.z+20+i*8
+        );
+
+        p.mesh.visible=true;
+        p.active=true;
+    });
+
+    startSiren();
+
+    document.getElementById("policeHud").innerHTML=
+        "🚨 POLÍCIA EM PERSEGUIÇÃO!";
+}
+
+/* =========================================================
+   COLISÃO SIMPLES
+========================================================= */
+
+function carCollision(a,b){
+
+    const d=a.position.distanceTo(b.position);
+
+    if(d<5){
+
+        const dx=a.position.x-b.position.x;
+        const dz=a.position.z-b.position.z;
+
+        const len=Math.sqrt(dx*dx+dz*dz)||1;
+
+        a.position.x+=dx/len*.5;
+        a.position.z+=dz/len*.5;
+
+        return true;
+    }
+
+    return false;
+}
+
+/* =========================================================
+   CONTROLES
+========================================================= */
+
+const keys={};
+
+window.addEventListener("keydown",e=>{
+
+    keys[e.key.toLowerCase()]=true;
+
+});
+
+window.addEventListener("keyup",e=>{
+
+    keys[e.key.toLowerCase()]=false;
+
+});
+
+document.querySelectorAll(".control").forEach(btn=>{
+
+    const player=btn.dataset.player;
+    const key=btn.dataset.key;
+
+    function press(e){
+
+        e.preventDefault();
+
+        if(key==="up") keys[player+"_up"]=true;
+        if(key==="down") keys[player+"_down"]=true;
+        if(key==="left") keys[player+"_left"]=true;
+        if(key==="right") keys[player+"_right"]=true;
+        if(key==="nitro") keys[player+"_nitro"]=true;
+    }
+
+    function release(e){
+
+        e.preventDefault();
+
+        if(key==="up") keys[player+"_up"]=false;
+        if(key==="down") keys[player+"_down"]=false;
+        if(key==="left") keys[player+"_left"]=false;
+        if(key==="right") keys[player+"_right"]=false;
+        if(key==="nitro") keys[player+"_nitro"]=false;
+    }
+
+    btn.addEventListener("touchstart",press,{passive:false});
+    btn.addEventListener("touchend",release,{passive:false});
+    btn.addEventListener("mousedown",press);
+    btn.addEventListener("mouseup",release);
+});
+
+/* =========================================================
+   ATUALIZAÇÃO DOS JOGADORES
+========================================================= */
+
+function updatePlayer(p,index,dt){
+
+    if(p.finished || p.caught)
+        return;
+
+    const n=index+1;
+
+    let up=false;
+    let down=false;
+    let left=false;
+    let right=false;
+    let nitro=false;
+
+    if(index===0){
+
+        up=keys["w"]||keys[n+"_up"];
+        down=keys["s"]||keys[n+"_down"];
+        left=keys["a"]||keys[n+"_left"];
+        right=keys["d"]||keys[n+"_right"];
+        nitro=keys[" "]||keys[n+"_nitro"];
+
+    }else{
+
+        up=keys["arrowup"]||keys[n+"_up"];
+        down=keys["arrowdown"]||keys[n+"_down"];
+        left=keys["arrowleft"]||keys[n+"_left"];
+        right=keys["arrowright"]||keys[n+"_right"];
+        nitro=keys["enter"]||keys[n+"_nitro"];
+    }
+
+    if(up){
+
+        p.speed+=.035;
+
+        if(p.speed>p.maxSpeed)
+            p.speed=p.maxSpeed;
+
+    }else{
+
+        p.speed-=.012;
+
+        if(p.speed<0)
+            p.speed=0;
+    }
+
+    if(down){
+
+        p.speed-=.05;
+
+        if(p.speed<-.35)
+            p.speed=-.35;
+    }
+
+    if(nitro && p.speed>0){
+
+        p.speed+=.02;
+
+        if(p.speed>1.9)
+            p.speed=1.9;
+    }
+
+    if(left)
+        p.mesh.rotation.y+=.045*(Math.abs(p.speed)+.3);
+
+    if(right)
+        p.mesh.rotation.y-=.045*(Math.abs(p.speed)+.3);
+
+    p.mesh.translateZ(p.speed);
+
+    /*
+       Mantém o jogador próximo das ruas.
+    */
+
+    keepCarOnRoad(p);
+
+    updateCheckpoint(p);
+
+    updateHUD(p,index);
+}
+
+/* =========================================================
+   MANTER CARRO NAS RUAS
+========================================================= */
+
+function keepCarOnRoad(p){
+
+    let best=null;
+    let bestDist=Infinity;
+
+    for(const pt of circuit){
+
+        const dx=p.mesh.position.x-pt[0];
+        const dz=p.mesh.position.z-pt[1];
+
+        const d=dx*dx+dz*dz;
+
+        if(d<bestDist){
+
+            bestDist=d;
+            best=pt;
+        }
+    }
+
+    /*
+       Não prende imediatamente.
+       Só impede que atravesse a cidade inteira.
+    */
+
+    const maxDistance=75;
+
+    if(best && Math.sqrt(bestDist)>maxDistance){
+
+        const angle=Math.atan2(
+            best[1]-p.mesh.position.z,
+            best[0]-p.mesh.position.x
+        );
+
+        p.mesh.position.x+=Math.cos(angle)*1.2;
+        p.mesh.position.z+=Math.sin(angle)*1.2;
+    }
+}
+
+/* =========================================================
+   CHECKPOINTS
+========================================================= */
+
+function createCheckpoints(){
+
+    checkpoints=[];
+
+    for(let i=0;i<circuit.length;i++){
+
+        checkpoints.push({
+            x:circuit[i][0],
+            z:circuit[i][1]
+        });
+    }
+
+    checkpoints.forEach((p,i)=>{
+
+        const ring=new THREE.Mesh(
+            new THREE.TorusGeometry(
+                12,
+                .35,
+                8,
+                32
+            ),
+            new THREE.MeshBasicMaterial({
+                color:i===0?0xffff00:0x00ffff
+            })
+        );
+
+        ring.rotation.x=Math.PI/2;
+
+        ring.position.set(
+            p.x,
+            .3,
+            p.z
+        );
+
+        scene.add(ring);
+    });
+}
+
+function updateCheckpoint(p){
+
+    const cp=checkpoints[p.checkpoint];
+
+    if(!cp)
+        return;
+
+    const dx=p.mesh.position.x-cp.x;
+    const dz=p.mesh.position.z-cp.z;
+
+    if(Math.sqrt(dx*dx+dz*dz)<18){
+
+        p.checkpoint++;
+
+        if(p.checkpoint>=checkpoints.length){
+
+            p.checkpoint=0;
+
+            p.lap++;
+
+            if(p.lap>TOTAL_LAPS){
+
+                p.finished=true;
+                p.speed=0;
+
+                activatePolice();
+            }
+        }
+    }
+}
+
+/* =========================================================
+   IA
+========================================================= */
+
+function updateAI(dt){
+
+    aiCars.forEach(ai=>{
+
+        if(ai.finished)
+            return;
+
+        const target=circuit[ai.index];
+
+        const dx=target[0]-ai.mesh.position.x;
+        const dz=target[1]-ai.mesh.position.z;
+
+        const distance=Math.sqrt(dx*dx+dz*dz);
+
+        const desired=Math.atan2(dx,dz);
+
+        let diff=desired-ai.mesh.rotation.y;
+
+        while(diff>Math.PI)
+            diff-=Math.PI*2;
+
+        while(diff<-Math.PI)
+            diff+=Math.PI*2;
+
+        ai.mesh.rotation.y+=diff*.045;
+
+        ai.mesh.translateZ(ai.speed);
+
+        if(distance<18){
+
+            ai.index++;
+
+            if(ai.index>=circuit.length){
+
+                ai.index=0;
+                ai.lap++;
+
+                if(ai.lap>TOTAL_LAPS)
+                    ai.finished=true;
+            }
+        }
+    });
+}
+
+/* =========================================================
+   POLÍCIA
+========================================================= */
+
+function updatePolice(dt){
+
+    if(!policeActive)
+        return;
+
+    policeCars.forEach(police=>{
+
+        if(!police.active)
+            return;
+
+        /*
+           Procura o jogador mais próximo que ainda
+           está participando da corrida/perseguição.
+        */
+
+        let target=null;
+        let best=Infinity;
+
+        players.forEach(p=>{
+
+            if(p.caught)
+                return;
+
+            const d=police.mesh.position.distanceTo(
+                p.mesh.position
+            );
+
+            if(d<best){
+
+                best=d;
+                target=p;
+            }
+        });
+
+        if(!target)
+            return;
+
+        const dx=target.mesh.position.x-
+                 police.mesh.position.x;
+
+        const dz=target.mesh.position.z-
+                 police.mesh.position.z;
+
+        const angle=Math.atan2(dx,dz);
+
+        let diff=angle-police.mesh.rotation.y;
+
+        while(diff>Math.PI)
+            diff-=Math.PI*2;
+
+        while(diff<-Math.PI)
+            diff+=Math.PI*2;
+
+        police.mesh.rotation.y+=diff*.035;
+
+        police.speed+=.025;
+
+        if(police.speed>1.05)
+            police.speed=1.05;
+
+        police.mesh.translateZ(police.speed);
+
+        /*
+           Captura
+        */
+
+        if(
+            police.mesh.position.distanceTo(
+                target.mesh.position
+            )<7
+        ){
+
+            target.caught=true;
+            target.speed=0;
+        }
+    });
+
+    /*
+       Atualiza volume da sirene.
+    */
+
+    let closest=9999;
+
+    policeCars.forEach(p=>{
+
+        players.forEach(player=>{
+
+            if(player.caught)
+                return;
+
+            const d=p.mesh.position.distanceTo(
+                player.mesh.position
+            );
+
+            if(d<closest)
+                closest=d;
+        });
+    });
+
+    if(sirenAudio){
+
+        let volume=1-Math.min(closest/220,1);
+
+        sirenAudio.volume=
+            audioEnabled ? Math.max(.05,volume*.8) : 0;
+    }
+}
+
+/* =========================================================
+   HUD
+========================================================= */
+
+function updateHUD(p,index){
+
+    const speed=Math.round(
+        Math.abs(p.speed)*180
+    );
+
+    const text=
+        (index===0?"🟡":"🔵")+
+        " P"+(index+1)+
+        " — Velocidade: "+speed+
+        "<br>Volta: "+
+        Math.min(p.lap,TOTAL_LAPS)+
+        "/"+TOTAL_LAPS+
+        " — Checkpoint: "+
+        (p.checkpoint+1)+
+        (p.finished?" 🏁 CHEGOU":"");
+
+    document.getElementById(
+        index===0?"p1Hud":"p2Hud"
+    ).innerHTML=text;
+}
+
+/* =========================================================
+   POSIÇÃO
+========================================================= */
+
+function getProgress(p){
+
+    return (
+        (p.lap-1)*checkpoints.length+
+        p.checkpoint
+    );
+}
+
+function getPlayerPosition(index){
+
+    const all=[];
+
+    players.forEach((p,i)=>{
+
+        all.push({
+            type:"player",
+            index:i,
+            progress:getProgress(p)
+        });
+    });
+
+    aiCars.forEach((ai,i)=>{
+
+        all.push({
+            type:"ai",
+            index:i,
+            progress:
+                (ai.lap-1)*circuit.length+
+                ai.index
+        });
+    });
+
+    all.sort((a,b)=>b.progress-a.progress);
+
+    return all.findIndex(
+        x=>x.type==="player" && x.index===index
+    )+1;
+}
+
+/* =========================================================
+   CÂMERA
+========================================================= */
+
+function updateCamera(){
+
+    /*
+       Câmera acompanha P1.
+       Se P1 estiver parado/terminado,
+       acompanha P2.
+    */
+
+    let target=players[0];
+
+    if(
+        target.finished ||
+        target.caught
+    )
+        target=players[1];
+
+    const car=target.mesh;
+
+    const offset=new THREE.Vector3(
+        0,
+        10,
+        -18
+    );
+
+    offset.applyQuaternion(car.quaternion);
+
+    const desired=
+        car.position.clone().add(offset);
+
+    camera.position.lerp(
+        desired,
+        .08
+    );
+
+    camera.lookAt(
+        car.position.x,
+        car.position.y+1,
+        car.position.z
+    );
+}
+
+/* =========================================================
+   ÁUDIO WAV
+========================================================= */
+
+function createWav(samples,sampleRate=22050){
+
+    const buffer=new ArrayBuffer(
+        44+samples.length*2
+    );
+
+    const view=new DataView(buffer);
+
+    function writeString(offset,string){
+
+        for(let i=0;i<string.length;i++)
+            view.setUint8(
+                offset+i,
+                string.charCodeAt(i)
+            );
+    }
+
+    writeString(0,"RIFF");
+
+    view.setUint32(
+        4,
+        36+samples.length*2,
+        true
+    );
+
+    writeString(8,"WAVE");
+    writeString(12,"fmt ");
+
+    view.setUint32(16,16,true);
+    view.setUint16(20,1,true);
+    view.setUint16(22,1,true);
+    view.setUint32(24,sampleRate,true);
+    view.setUint32(28,sampleRate*2,true);
+    view.setUint16(32,2,true);
+    view.setUint16(34,16,true);
+
+    writeString(36,"data");
+
+    view.setUint32(
+        40,
+        samples.length*2,
+        true
+    );
+
+    let offset=44;
+
+    for(let i=0;i<samples.length;i++){
+
+        let s=Math.max(
+            -1,
+            Math.min(1,samples[i])
+        );
+
+        view.setInt16(
+            offset,
+            s<0?s*32768:s*32767,
+            true
+        );
+
+        offset+=2;
+    }
+
+    return new Blob(
+        [buffer],
+        {type:"audio/wav"}
+    );
+}
+
+function generateMusic(){
+
+    const rate=22050;
+    const seconds=6;
+    const samples=new Float32Array(
+        rate*seconds
+    );
+
+    const notes=[
+        261.63,
+        329.63,
+        392,
+        329.63,
+        293.66,
+        349.23,
+        440,
+        349.23
+    ];
+
+    for(let i=0;i<samples.length;i++){
+
+        const t=i/rate;
+
+        const beat=Math.floor(t*2)%notes.length;
+
+        const f=notes[beat];
+
+        samples[i]=
+            Math.sin(2*Math.PI*f*t)*.12+
+            Math.sin(2*Math.PI*f*2*t)*.05;
+    }
+
+    return createWav(samples,rate);
+}
+
+function generateSiren(){
+
+    const rate=22050;
+    const seconds=2;
+    const samples=new Float32Array(
+        rate*seconds
+    );
+
+    for(let i=0;i<samples.length;i++){
+
+        const t=i/rate;
+
+        const f=
+            650+
+            450*
+            ((Math.sin(t*2*Math.PI*.8)+1)/2);
+
+        samples[i]=
+            Math.sin(
+                2*Math.PI*f*t
+            )*.3;
+    }
+
+    return createWav(samples,rate);
+}
+
+function initializeAudio(){
+
+    if(musicAudio)
+        return;
+
+    const musicBlob=generateMusic();
+    const sirenBlob=generateSiren();
+
+    musicAudio=new Audio(
+        URL.createObjectURL(musicBlob)
+    );
+
+    sirenAudio=new Audio(
+        URL.createObjectURL(sirenBlob)
+    );
+
+    musicAudio.loop=true;
+    sirenAudio.loop=true;
+
+    musicAudio.volume=.55;
+    sirenAudio.volume=0;
+
+    musicAudio.preload="auto";
+    sirenAudio.preload="auto";
+}
+
+function startAudio(){
+
+    if(!audioEnabled)
+        return;
+
+    if(musicAudio){
+
+        musicAudio.muted=false;
+
+        musicAudio.play().catch(()=>{});
+    }
+}
+
+function startSiren(){
+
+    if(
+        sirenAudio &&
+        audioEnabled
+    ){
+
+        sirenAudio.muted=false;
+
+        sirenAudio.play().catch(()=>{});
+    }
+}
+
+function stopSiren(){
+
+    if(sirenAudio){
+
+        sirenAudio.pause();
+        sirenAudio.currentTime=0;
+    }
+}
+
+/* =========================================================
+   INICIAR
+========================================================= */
+
+function startRace(){
+
+    initializeAudio();
+    startAudio();
+
+    createPlayers();
+    createAI();
+    createPolice();
+    createCheckpoints();
+
+    raceStarted=false;
+    raceFinished=false;
+    policeActive=false;
+
+    document.getElementById(
+        "startScreen"
+    ).style.display="none";
+
+    startCountdown();
+}
+
+function startCountdown(){
+
+    const el=document.getElementById(
+        "countdown"
+    );
+
+    el.style.display="flex";
+
+    let count=3;
+
+    el.textContent=count;
+
+    const timer=setInterval(()=>{
+
+        count--;
+
+        if(count>0){
+
+            el.textContent=count;
+
+        }else{
+
+            el.textContent="GO!";
+
+            raceStarted=true;
+
+            setTimeout(()=>{
+                el.style.display="none";
+            },700);
+
+            clearInterval(timer);
+        }
+
+    },1000);
+}
+
+/* =========================================================
+   FINAL
+========================================================= */
+
+function checkRaceEnd(){
+
+    const allDone=players.every(
+        p=>p.finished || p.caught
+    );
+
+    if(!allDone)
+        return;
+
+    raceFinished=true;
+
+    stopSiren();
+
+    let text="";
+
+    if(players[0].finished &&
+       !players[1].finished){
+
+        text="🏆 P1 venceu a corrida!";
+    }
+    else if(players[1].finished &&
+            !players[0].finished){
+
+        text="🏆 P2 venceu a corrida!";
+    }
+    else if(
+        players[0].finished &&
+        players[1].finished
+    ){
+
+        text="🏁 Os dois jogadores chegaram!";
+    }
+    else{
+
+        text="🚓 A polícia pegou os jogadores!";
+    }
+
+    const pos1=getPlayerPosition(0);
+    const pos2=getPlayerPosition(1);
+
+    text+=
+        "<br><br>P1: "+pos1+"º"+
+        "<br>P2: "+pos2+"º"+
+        "<br><br><button onclick='location.reload()'>JOGAR NOVAMENTE</button>";
+
+    const msg=document.getElementById(
+        "message"
+    );
+
+    msg.innerHTML=text;
+    msg.style.display="block";
+}
+
+/* =========================================================
+   LOOP
+========================================================= */
+
+function animate(){
+
+    requestAnimationFrame(animate);
+
+    const dt=Math.min(
+        clock.getDelta(),
+        .05
+    );
+
+    if(raceStarted && !raceFinished){
+
+        players.forEach(
+            (p,i)=>{
+                updatePlayer(p,i,dt);
+            }
+        );
+
+        updateAI(dt);
+        updatePolice(dt);
+
+        checkRaceEnd();
+    }
+
+    updateCamera();
+
+    renderer.render(
+        scene,
+        camera
+    );
+}
+
+/* =========================================================
+   SOM
+========================================================= */
+
+document.getElementById(
+    "soundBtn"
+).onclick=()=>{
+
+    audioEnabled=!audioEnabled;
+
+    const btn=document.getElementById(
+        "soundBtn"
+    );
+
+    if(audioEnabled){
+
+        btn.textContent="🔊 Som ligado";
+
+        if(musicAudio)
+            musicAudio.play().catch(()=>{});
+
+    }else{
+
+        btn.textContent="🔇 Som desligado";
+
+        if(musicAudio)
+            musicAudio.pause();
+
+        if(sirenAudio)
+            sirenAudio.pause();
+    }
+};
+
+document.getElementById(
+    "startBtn"
+).onclick=startRace;
+
+/* =========================================================
+   RESIZE
+========================================================= */
+
+function resize(){
+
+    camera.aspect=
+        innerWidth/innerHeight;
+
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(
+        innerWidth,
+        innerHeight
+    );
+}
+
+/* =========================================================
+   INICIAR MOTOR
+========================================================= */
+
+init();
+
+</script>
+
+</body>
+</html>
