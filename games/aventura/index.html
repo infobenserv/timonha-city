@@ -1,0 +1,1690 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Timonha City - Aventura</title>
+
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #102a43;
+}
+
+#jogo {
+    width: 100%;
+    height: 100%;
+}
+
+canvas {
+    display: block;
+    margin: auto;
+}
+
+#controles {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 0 15px;
+    pointer-events: none;
+    z-index: 20;
+}
+
+.grupo-controle {
+    display: flex;
+    gap: 10px;
+    pointer-events: auto;
+}
+
+.botao {
+    width: 58px;
+    height: 58px;
+    border: 2px solid white;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.45);
+    color: white;
+    font-size: 25px;
+    font-weight: bold;
+    touch-action: none;
+    user-select: none;
+}
+
+.botao:active {
+    transform: scale(0.9);
+    background: rgba(255,255,255,0.3);
+}
+</style>
+</head>
+
+<body>
+
+<div id="jogo"></div>
+
+<div id="controles">
+    <div class="grupo-controle">
+        <button class="botao" id="esquerda">⬅️</button>
+        <button class="botao" id="direita">➡️</button>
+    </div>
+
+    <div class="grupo-controle">
+        <button class="botao" id="pular">⬆️</button>
+    </div>
+</div>
+
+<script>
+
+let cena;
+let jogador;
+let plataformas;
+let inimigos;
+
+let pontuacao = 0;
+let moedasPegas = 0;
+
+let escudoAtivo = false;
+let escudoObjeto = null;
+
+let textoPontuacao;
+let textoVidas;
+let textoMoedas;
+let textoEscudo;
+
+let faseFinalizada = false;
+let perdendoVida = false;
+
+let esquerdaPressionada = false;
+let direitaPressionada = false;
+
+
+/* =========================
+   VIDAS
+========================= */
+
+let vidas = Number(
+    localStorage.getItem("timonha_vidas")
+);
+
+if (!Number.isFinite(vidas) || vidas < 0) {
+    vidas = 5;
+}
+
+if (vidas > 5) {
+    vidas = 5;
+}
+
+let ultimaVida = Number(
+    localStorage.getItem("timonha_ultima_vida")
+);
+
+if (!Number.isFinite(ultimaVida)) {
+
+    ultimaVida = Date.now();
+
+    localStorage.setItem(
+        "timonha_ultima_vida",
+        ultimaVida
+    );
+}
+
+const CINCO_MINUTOS = 5 * 60 * 1000;
+
+function recuperarVidas() {
+
+    if (vidas >= 5) {
+
+        vidas = 5;
+
+        localStorage.setItem(
+            "timonha_vidas",
+            vidas
+        );
+
+        localStorage.setItem(
+            "timonha_ultima_vida",
+            Date.now()
+        );
+
+        ultimaVida = Date.now();
+
+        return;
+    }
+
+    const agora = Date.now();
+
+    const tempoPassado =
+        agora - ultimaVida;
+
+    const recuperadas =
+        Math.floor(
+            tempoPassado / CINCO_MINUTOS
+        );
+
+    if (recuperadas > 0) {
+
+        vidas = Math.min(
+            5,
+            vidas + recuperadas
+        );
+
+        ultimaVida +=
+            recuperadas * CINCO_MINUTOS;
+
+        if (vidas >= 5) {
+            ultimaVida = agora;
+        }
+
+        localStorage.setItem(
+            "timonha_vidas",
+            vidas
+        );
+
+        localStorage.setItem(
+            "timonha_ultima_vida",
+            ultimaVida
+        );
+    }
+}
+
+recuperarVidas();
+
+
+/* =========================
+   CONFIGURAÇÃO
+========================= */
+
+const configuracao = {
+
+    type: Phaser.AUTO,
+
+    parent: "jogo",
+
+    width: 960,
+    height: 540,
+
+    backgroundColor: "#76c893",
+
+    physics: {
+
+        default: "arcade",
+
+        arcade: {
+            gravity: {
+                y: 1000
+            },
+            debug: false
+        }
+    },
+
+    scale: {
+
+        mode: Phaser.Scale.FIT,
+
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+
+        width: 960,
+        height: 540,
+
+        min: {
+            width: 320,
+            height: 180
+        },
+
+        max: {
+            width: 960,
+            height: 540
+        }
+    },
+
+    scene: {
+        preload,
+        create,
+        update
+    }
+};
+
+const jogo =
+    new Phaser.Game(configuracao);
+
+
+/* =========================
+   PRELOAD
+========================= */
+
+function preload() {
+}
+
+
+/* =========================
+   CREATE
+========================= */
+
+function create() {
+
+    cena = this;
+
+    cena.physics.world.setBounds(
+        0,
+        0,
+        6000,
+        540
+    );
+
+    cena.cameras.main.setBounds(
+        0,
+        0,
+        6000,
+        540
+    );
+
+    /* Zoom aprovado */
+
+    cena.cameras.main.setZoom(0.65);
+
+    criarCenario();
+
+
+    /* =========================
+       PLATAFORMAS
+    ========================= */
+
+    plataformas =
+        cena.physics.add.staticGroup();
+
+    const mapa = [
+
+        [180,515,360,50],
+        [610,515,180,50],
+        [900,515,180,50],
+        [1180,515,250,50],
+        [1510,515,180,50],
+        [1770,515,350,50],
+        [2230,515,200,50],
+        [2540,515,300,50],
+        [2940,515,180,50],
+        [3220,515,400,50],
+        [3700,515,220,50],
+        [4000,515,350,50],
+        [4430,515,180,50],
+        [4720,515,300,50],
+        [5140,515,220,50],
+        [5450,515,500,50],
+
+        [700,390,150,30],
+        [1050,350,160,30],
+        [1400,400,150,30],
+        [1950,380,160,30],
+        [2350,340,150,30],
+        [2750,390,160,30],
+        [3100,350,170,30],
+        [3550,380,150,30],
+        [4150,360,160,30],
+        [4600,390,150,30],
+        [5000,350,170,30],
+        [5350,390,160,30]
+    ];
+
+    mapa.forEach(function(p) {
+
+        criarPlataforma(
+            cena,
+            p[0],
+            p[1],
+            p[2],
+            p[3]
+        );
+
+    });
+
+
+    /* =========================
+       JOGADOR
+    ========================= */
+
+    jogador =
+        cena.physics.add.sprite(
+            230,
+            430
+        );
+
+    jogador.setSize(
+        32,
+        42
+    );
+
+    jogador.setCollideWorldBounds(false);
+
+    jogador.corpo =
+        cena.add.rectangle(
+            230,
+            430,
+            34,
+            42,
+            0xffcc66
+        );
+
+    jogador.olho =
+        cena.add.circle(
+            240,
+            420,
+            4,
+            0x000000
+        );
+
+    cena.physics.add.collider(
+        jogador,
+        plataformas
+    );
+
+
+    /* =========================
+       CÂMERA
+    ========================= */
+
+    cena.cameras.main.startFollow(
+        jogador,
+        true,
+        0.08,
+        0.08
+    );
+
+    cena.cameras.main.setDeadzone(
+        300,
+        120
+    );
+
+
+    /* =========================
+       MOEDAS
+    ========================= */
+
+    const listaMoedas = [
+
+        [250,450],
+        [330,450],
+        [700,330],
+        [760,330],
+        [1000,450],
+        [1080,300],
+        [1160,300],
+        [1300,450],
+        [1450,350],
+        [1850,450],
+        [1950,330],
+        [2050,330],
+        [2300,450],
+        [2380,290],
+        [2650,450],
+        [2750,340],
+        [2850,340],
+        [3350,450],
+        [3550,330],
+        [4050,450],
+        [4150,310],
+        [4500,450],
+        [4600,340],
+        [4800,450],
+        [5000,300],
+        [5100,300],
+        [5500,450],
+        [5650,450],
+        [5800,450]
+    ];
+
+    listaMoedas.forEach(function(posicao) {
+
+        criarMoeda(
+            cena,
+            posicao[0],
+            posicao[1]
+        );
+
+    });
+
+
+    /* =========================
+       ESCUDO
+    ========================= */
+
+    escudoObjeto =
+        cena.add.circle(
+            540,
+            450,
+            20,
+            0x00e5ff
+        );
+
+    escudoObjeto.setStrokeStyle(
+        5,
+        0xffffff
+    );
+
+    cena.physics.add.existing(
+        escudoObjeto,
+        true
+    );
+
+    cena.physics.add.overlap(
+        jogador,
+        escudoObjeto,
+        pegarEscudo,
+        null,
+        cena
+    );
+
+
+    /* =========================
+       INIMIGOS
+    ========================= */
+
+    inimigos =
+        cena.physics.add.group();
+
+    const listaInimigos = [
+
+        [650,450],
+        [970,450],
+        [1250,450],
+        [1580,450],
+        [1850,450],
+        [2280,450],
+        [2600,450],
+        [3300,450],
+        [3750,450],
+        [4100,450],
+        [4500,450],
+        [4800,450],
+        [5250,450],
+        [5600,450]
+    ];
+
+    listaInimigos.forEach(function(posicao) {
+
+        criarInimigo(
+            cena,
+            posicao[0],
+            posicao[1]
+        );
+
+    });
+
+    cena.physics.add.collider(
+        inimigos,
+        plataformas
+    );
+
+    cena.physics.add.collider(
+        jogador,
+        inimigos,
+        colisaoJogadorInimigo,
+        null,
+        cena
+    );
+
+
+    /* =========================
+       HUD
+    ========================= */
+
+    textoPontuacao =
+        cena.add.text(
+            20,
+            20,
+            "⭐ Pontos: 0",
+            {
+                fontSize: "20px",
+                color: "#ffffff",
+                fontStyle: "bold"
+            }
+        )
+        .setScrollFactor(0);
+
+    textoVidas =
+        cena.add.text(
+            20,
+            48,
+            "❤️ Vidas: " + vidas,
+            {
+                fontSize: "20px",
+                color: "#ffffff",
+                fontStyle: "bold"
+            }
+        )
+        .setScrollFactor(0);
+
+    textoMoedas =
+        cena.add.text(
+            20,
+            76,
+            "🪙 Moedas: 0",
+            {
+                fontSize: "20px",
+                color: "#ffffff",
+                fontStyle: "bold"
+            }
+        )
+        .setScrollFactor(0);
+
+    textoEscudo =
+        cena.add.text(
+            20,
+            104,
+            "🛡️ Escudo: NÃO",
+            {
+                fontSize: "20px",
+                color: "#ffffff",
+                fontStyle: "bold"
+            }
+        )
+        .setScrollFactor(0);
+
+
+    /* =========================
+       TECLADO
+    ========================= */
+
+    cena.input.keyboard.addKey(
+        Phaser.Input.Keyboard.KeyCodes.LEFT
+    );
+
+    cena.input.keyboard.addKey(
+        Phaser.Input.Keyboard.KeyCodes.RIGHT
+    );
+
+    cena.input.keyboard.addKey(
+        Phaser.Input.Keyboard.KeyCodes.UP
+    );
+
+
+    configurarControles();
+}
+
+
+/* =========================
+   UPDATE
+========================= */
+
+function update() {
+
+    if (
+        !jogador ||
+        !jogador.active ||
+        faseFinalizada
+    ) {
+        return;
+    }
+
+    atualizarMovimento();
+
+    atualizarJogadorVisual();
+
+    atualizarInimigos();
+
+    atualizarEscudoVisual();
+
+    recuperarVidas();
+
+    atualizarHUD();
+
+
+    if (
+        jogador.y > 600 &&
+        !perdendoVida
+    ) {
+
+        perderVida();
+
+        return;
+    }
+
+
+    if (
+        jogador.x >= 5850
+    ) {
+
+        finalizarFase();
+    }
+}
+
+
+/* =========================
+   MOVIMENTO
+========================= */
+
+function atualizarMovimento() {
+
+    if (!jogador) {
+        return;
+    }
+
+    const teclas =
+        cena.input.keyboard;
+
+    const esquerdaTeclado =
+        teclas.keys[Phaser.Input.Keyboard.KeyCodes.LEFT];
+
+    const direitaTeclado =
+        teclas.keys[Phaser.Input.Keyboard.KeyCodes.RIGHT];
+
+
+    const esquerda =
+        esquerdaPressionada ||
+        (esquerdaTeclado &&
+         esquerdaTeclado.isDown);
+
+    const direita =
+        direitaPressionada ||
+        (direitaTeclado &&
+         direitaTeclado.isDown);
+
+
+    if (
+        esquerda &&
+        !direita
+    ) {
+
+        jogador.setVelocityX(
+            -220
+        );
+    }
+
+    else if (
+        direita &&
+        !esquerda
+    ) {
+
+        jogador.setVelocityX(
+            220
+        );
+    }
+
+    else {
+
+        jogador.setVelocityX(
+            0
+        );
+    }
+}
+
+
+/* =========================
+   CENÁRIO
+========================= */
+
+function criarCenario() {
+
+    cena.add.circle(
+        820,
+        100,
+        50,
+        0xffe066
+    )
+    .setScrollFactor(0.2);
+
+    criarNuvem(300,100);
+    criarNuvem(1200,120);
+    criarNuvem(2300,90);
+    criarNuvem(3500,130);
+    criarNuvem(4800,100);
+
+    for (
+        let x = 100;
+        x < 6000;
+        x += 300
+    ) {
+
+        criarArvore(
+            x,
+            430
+        );
+    }
+}
+
+
+function criarNuvem(x,y) {
+
+    cena.add.circle(
+        x,
+        y,
+        30,
+        0xffffff
+    )
+    .setScrollFactor(0.3);
+
+    cena.add.circle(
+        x + 35,
+        y,
+        40,
+        0xffffff
+    )
+    .setScrollFactor(0.3);
+
+    cena.add.circle(
+        x + 70,
+        y,
+        25,
+        0xffffff
+    )
+    .setScrollFactor(0.3);
+}
+
+
+function criarArvore(x,y) {
+
+    cena.add.rectangle(
+        x,
+        y + 25,
+        20,
+        60,
+        0x7b4f2c
+    );
+
+    cena.add.circle(
+        x,
+        y - 10,
+        40,
+        0x2e7d32
+    );
+
+    cena.add.circle(
+        x - 25,
+        y + 5,
+        30,
+        0x388e3c
+    );
+
+    cena.add.circle(
+        x + 25,
+        y + 5,
+        30,
+        0x388e3c
+    );
+}
+
+
+/* =========================
+   PLATAFORMA
+========================= */
+
+function criarPlataforma(
+    scene,
+    x,
+    y,
+    largura,
+    altura
+) {
+
+    const plataforma =
+        scene.add.rectangle(
+            x,
+            y,
+            largura,
+            altura,
+            0x5d4037
+        );
+
+    scene.physics.add.existing(
+        plataforma,
+        true
+    );
+
+    plataformas.add(
+        plataforma
+    );
+}
+
+
+/* =========================
+   MOEDA
+========================= */
+
+function criarMoeda(
+    scene,
+    x,
+    y
+) {
+
+    const moeda =
+        scene.add.circle(
+            x,
+            y,
+            12,
+            0xffd700
+        );
+
+    scene.physics.add.existing(
+        moeda,
+        true
+    );
+
+    scene.physics.add.overlap(
+        jogador,
+        moeda,
+        pegarMoeda,
+        null,
+        scene
+    );
+}
+
+
+function pegarMoeda(
+    jogadorAtual,
+    moeda
+) {
+
+    if (!moeda.active) {
+        return;
+    }
+
+    moeda.disableBody(
+        true,
+        true
+    );
+
+    pontuacao += 100;
+    moedasPegas++;
+
+    textoPontuacao.setText(
+        "⭐ Pontos: " + pontuacao
+    );
+
+    textoMoedas.setText(
+        "🪙 Moedas: " + moedasPegas
+    );
+}
+
+
+/* =========================
+   ESCUDO
+========================= */
+
+function pegarEscudo() {
+
+    if (
+        escudoAtivo ||
+        !escudoObjeto ||
+        !escudoObjeto.active
+    ) {
+        return;
+    }
+
+    escudoAtivo = true;
+
+    escudoObjeto.setActive(false);
+    escudoObjeto.setVisible(false);
+
+    if (escudoObjeto.body) {
+        escudoObjeto.body.enable = false;
+    }
+
+    textoEscudo.setText(
+        "🛡️ Escudo: ATIVO"
+    );
+
+    mostrarMensagem(
+        "🛡️ ESCUDO ATIVADO!",
+        jogador.x,
+        jogador.y - 60
+    );
+}
+
+
+function atualizarEscudoVisual() {
+
+    if (!escudoAtivo) {
+        return;
+    }
+
+    if (!jogador.escudoVisual) {
+
+        jogador.escudoVisual =
+            cena.add.circle(
+                jogador.x,
+                jogador.y,
+                30,
+                0x00e5ff,
+                0.25
+            );
+
+        jogador.escudoVisual.setStrokeStyle(
+            3,
+            0xffffff
+        );
+    }
+
+    jogador.escudoVisual.setPosition(
+        jogador.x,
+        jogador.y
+    );
+}
+
+
+/* =========================
+   INIMIGO
+========================= */
+
+function criarInimigo(
+    scene,
+    x,
+    y
+) {
+
+    const inimigo =
+        scene.physics.add.sprite(
+            x,
+            y
+        );
+
+    inimigo.setSize(
+        40,
+        42
+    );
+
+    inimigo.setCollideWorldBounds(
+        true
+    );
+
+    inimigo.setVelocityX(
+        80
+    );
+
+    inimigo.limiteEsquerdo =
+        x - 90;
+
+    inimigo.limiteDireito =
+        x + 90;
+
+
+    inimigo.corpo =
+        scene.add.rectangle(
+            x,
+            y,
+            42,
+            38,
+            0x8e24aa
+        );
+
+    inimigo.olho1 =
+        scene.add.circle(
+            x - 8,
+            y - 5,
+            5,
+            0xffffff
+        );
+
+    inimigo.olho2 =
+        scene.add.circle(
+            x + 8,
+            y - 5,
+            5,
+            0xffffff
+        );
+
+    inimigo.pupila1 =
+        scene.add.circle(
+            x - 8,
+            y - 5,
+            2,
+            0x000000
+        );
+
+    inimigo.pupila2 =
+        scene.add.circle(
+            x + 8,
+            y - 5,
+            2,
+            0x000000
+        );
+
+    inimigo.boca =
+        scene.add.rectangle(
+            x,
+            y + 8,
+            12,
+            3,
+            0x000000
+        );
+
+    inimigo.perna1 =
+        scene.add.rectangle(
+            x - 10,
+            y + 22,
+            8,
+            8,
+            0x4a148c
+        );
+
+    inimigo.perna2 =
+        scene.add.rectangle(
+            x + 10,
+            y + 22,
+            8,
+            8,
+            0x4a148c
+        );
+
+    inimigos.add(
+        inimigo
+    );
+}
+
+
+/* =========================
+   ATUALIZAR INIMIGOS
+========================= */
+
+function atualizarInimigos() {
+
+    inimigos.children.iterate(
+        function(inimigo) {
+
+            if (
+                !inimigo ||
+                !inimigo.active
+            ) {
+                return;
+            }
+
+            if (
+                inimigo.x <=
+                inimigo.limiteEsquerdo
+            ) {
+
+                inimigo.setVelocityX(
+                    80
+                );
+            }
+
+            if (
+                inimigo.x >=
+                inimigo.limiteDireito
+            ) {
+
+                inimigo.setVelocityX(
+                    -80
+                );
+            }
+
+            const tempo =
+                jogo.loop.now;
+
+            const balanco =
+                Math.sin(
+                    tempo / 150
+                ) * 2;
+
+            inimigo.corpo.setPosition(
+                inimigo.x,
+                inimigo.y + balanco
+            );
+
+            inimigo.olho1.setPosition(
+                inimigo.x - 8,
+                inimigo.y - 5 + balanco
+            );
+
+            inimigo.olho2.setPosition(
+                inimigo.x + 8,
+                inimigo.y - 5 + balanco
+            );
+
+            inimigo.pupila1.setPosition(
+                inimigo.x - 8,
+                inimigo.y - 5 + balanco
+            );
+
+            inimigo.pupila2.setPosition(
+                inimigo.x + 8,
+                inimigo.y - 5 + balanco
+            );
+
+            inimigo.boca.setPosition(
+                inimigo.x,
+                inimigo.y + 8 + balanco
+            );
+
+            const passo =
+                Math.sin(
+                    tempo / 100
+                ) * 4;
+
+            inimigo.perna1.setPosition(
+                inimigo.x - 10,
+                inimigo.y + 22 + passo
+            );
+
+            inimigo.perna2.setPosition(
+                inimigo.x + 10,
+                inimigo.y + 22 - passo
+            );
+        }
+    );
+}
+
+
+/* =========================
+   COLISÃO
+========================= */
+
+function colisaoJogadorInimigo(
+    jogadorAtual,
+    inimigoAtual
+) {
+
+    if (
+        !inimigoAtual ||
+        !inimigoAtual.active ||
+        perdendoVida ||
+        faseFinalizada
+    ) {
+        return;
+    }
+
+    const caindo =
+        jogadorAtual.body.velocity.y > 0;
+
+    const acima =
+        jogadorAtual.y <
+        inimigoAtual.y - 15;
+
+
+    if (
+        caindo &&
+        acima
+    ) {
+
+        derrotarInimigo(
+            inimigoAtual
+        );
+
+        return;
+    }
+
+
+    /* Escudo bloqueia */
+
+    if (escudoAtivo) {
+
+        escudoAtivo = false;
+
+        textoEscudo.setText(
+            "🛡️ Escudo: NÃO"
+        );
+
+        if (
+            jogadorAtual.escudoVisual
+        ) {
+
+            jogadorAtual
+                .escudoVisual
+                .destroy();
+
+            jogadorAtual.escudoVisual =
+                null;
+        }
+
+        jogadorAtual.setVelocityY(
+            -350
+        );
+
+        mostrarMensagem(
+            "🛡️ BLOQUEADO!",
+            jogadorAtual.x,
+            jogadorAtual.y - 50
+        );
+
+        return;
+    }
+
+
+    perderVida();
+}
+
+
+/* =========================
+   DERROTAR INIMIGO
+========================= */
+
+function derrotarInimigo(
+    inimigo
+) {
+
+    if (
+        !inimigo ||
+        !inimigo.active
+    ) {
+        return;
+    }
+
+    pontuacao += 200;
+
+    textoPontuacao.setText(
+        "⭐ Pontos: " + pontuacao
+    );
+
+    inimigo.setActive(false);
+
+    inimigo.body.enable = false;
+
+    inimigo.corpo.setVisible(false);
+    inimigo.olho1.setVisible(false);
+    inimigo.olho2.setVisible(false);
+    inimigo.pupila1.setVisible(false);
+    inimigo.pupila2.setVisible(false);
+    inimigo.boca.setVisible(false);
+    inimigo.perna1.setVisible(false);
+    inimigo.perna2.setVisible(false);
+
+    jogador.setVelocityY(
+        -420
+    );
+
+    mostrarMensagem(
+        "+200 ⭐",
+        inimigo.x,
+        inimigo.y - 40
+    );
+}
+
+
+/* =========================
+   PERDER VIDA
+========================= */
+
+function perderVida() {
+
+    if (
+        perdendoVida ||
+        faseFinalizada
+    ) {
+        return;
+    }
+
+    perdendoVida = true;
+
+    vidas--;
+
+    if (vidas === 4) {
+
+        ultimaVida =
+            Date.now();
+
+        localStorage.setItem(
+            "timonha_ultima_vida",
+            ultimaVida
+        );
+    }
+
+    localStorage.setItem(
+        "timonha_vidas",
+        vidas
+    );
+
+    textoVidas.setText(
+        "❤️ Vidas: " + vidas
+    );
+
+
+    if (vidas <= 0) {
+
+        mostrarGameOver();
+
+        return;
+    }
+
+    cena.physics.pause();
+
+    setTimeout(
+        function() {
+
+            jogador.setPosition(
+                230,
+                430
+            );
+
+            jogador.setVelocity(
+                0,
+                0
+            );
+
+            perdendoVida = false;
+
+            cena.physics.resume();
+
+        },
+        700
+    );
+}
+
+
+/* =========================
+   GAME OVER
+========================= */
+
+function mostrarGameOver() {
+
+    cena.physics.pause();
+
+    const largura =
+        cena.cameras.main.width;
+
+    const altura =
+        cena.cameras.main.height;
+
+    cena.add.rectangle(
+        largura / 2,
+        altura / 2,
+        520,
+        280,
+        0x000000,
+        0.85
+    )
+    .setScrollFactor(0);
+
+    cena.add.text(
+        largura / 2,
+        altura / 2 - 70,
+        "GAME OVER",
+        {
+            fontSize: "48px",
+            color: "#ff4444",
+            fontStyle: "bold"
+        }
+    )
+    .setOrigin(0.5)
+    .setScrollFactor(0);
+
+    cena.add.text(
+        largura / 2,
+        altura / 2,
+        "Suas vidas acabaram.",
+        {
+            fontSize: "24px",
+            color: "#ffffff"
+        }
+    )
+    .setOrigin(0.5)
+    .setScrollFactor(0);
+}
+
+
+/* =========================
+   FINAL
+========================= */
+
+function finalizarFase() {
+
+    if (faseFinalizada) {
+        return;
+    }
+
+    faseFinalizada = true;
+
+    jogador.setVelocity(
+        0,
+        0
+    );
+
+    cena.physics.pause();
+
+    const largura =
+        cena.cameras.main.width;
+
+    const altura =
+        cena.cameras.main.height;
+
+    cena.add.rectangle(
+        largura / 2,
+        altura / 2,
+        560,
+        300,
+        0x000000,
+        0.85
+    )
+    .setScrollFactor(0);
+
+    cena.add.text(
+        largura / 2,
+        altura / 2 - 80,
+        "🏆 FASE CONCLUÍDA!",
+        {
+            fontSize: "38px",
+            color: "#ffe066",
+            fontStyle: "bold"
+        }
+    )
+    .setOrigin(0.5)
+    .setScrollFactor(0);
+
+    cena.add.text(
+        largura / 2,
+        altura / 2 - 15,
+        "Você chegou ao final!",
+        {
+            fontSize: "24px",
+            color: "#ffffff"
+        }
+    )
+    .setOrigin(0.5)
+    .setScrollFactor(0);
+
+    cena.add.text(
+        largura / 2,
+        altura / 2 + 35,
+        "⭐ " + pontuacao +
+        "    🪙 " + moedasPegas,
+        {
+            fontSize: "22px",
+            color: "#ffffff"
+        }
+    )
+    .setOrigin(0.5)
+    .setScrollFactor(0);
+}
+
+
+/* =========================
+   MENSAGEM
+========================= */
+
+function mostrarMensagem(
+    mensagem,
+    x,
+    y
+) {
+
+    const texto =
+        cena.add.text(
+            x,
+            y,
+            mensagem,
+            {
+                fontSize: "22px",
+                color: "#ffffff",
+                fontStyle: "bold"
+            }
+        )
+        .setOrigin(0.5);
+
+    cena.tweens.add({
+
+        targets: texto,
+
+        y: y - 50,
+
+        alpha: 0,
+
+        duration: 900,
+
+        onComplete: function() {
+            texto.destroy();
+        }
+    });
+}
+
+
+/* =========================
+   VISUAL DO JOGADOR
+========================= */
+
+function atualizarJogadorVisual() {
+
+    jogador.corpo.setPosition(
+        jogador.x,
+        jogador.y
+    );
+
+    jogador.olho.setPosition(
+        jogador.x + 10,
+        jogador.y - 10
+    );
+}
+
+
+/* =========================
+   HUD
+========================= */
+
+function atualizarHUD() {
+
+    textoVidas.setText(
+        "❤️ Vidas: " + vidas
+    );
+
+    textoEscudo.setText(
+        escudoAtivo
+            ? "🛡️ Escudo: ATIVO"
+            : "🛡️ Escudo: NÃO"
+    );
+}
+
+
+/* =========================
+   CONTROLES CELULAR
+========================= */
+
+function configurarControles() {
+
+    const esquerda =
+        document.getElementById(
+            "esquerda"
+        );
+
+    const direita =
+        document.getElementById(
+            "direita"
+        );
+
+    const pular =
+        document.getElementById(
+            "pular"
+        );
+
+
+    function iniciarEsquerda(evento) {
+
+        evento.preventDefault();
+
+        esquerdaPressionada = true;
+    }
+
+    function pararEsquerda(evento) {
+
+        evento.preventDefault();
+
+        esquerdaPressionada = false;
+    }
+
+
+    function iniciarDireita(evento) {
+
+        evento.preventDefault();
+
+        direitaPressionada = true;
+    }
+
+    function pararDireita(evento) {
+
+        evento.preventDefault();
+
+        direitaPressionada = false;
+    }
+
+
+    esquerda.addEventListener(
+        "touchstart",
+        iniciarEsquerda,
+        { passive: false }
+    );
+
+    esquerda.addEventListener(
+        "touchend",
+        pararEsquerda,
+        { passive: false }
+    );
+
+    esquerda.addEventListener(
+        "touchcancel",
+        pararEsquerda,
+        { passive: false }
+    );
+
+
+    direita.addEventListener(
+        "touchstart",
+        iniciarDireita,
+        { passive: false }
+    );
+
+    direita.addEventListener(
+        "touchend",
+        pararDireita,
+        { passive: false }
+    );
+
+    direita.addEventListener(
+        "touchcancel",
+        pararDireita,
+        { passive: false }
+    );
+
+
+    pular.addEventListener(
+        "touchstart",
+        function(evento) {
+
+            evento.preventDefault();
+
+            if (
+                jogador &&
+                jogador.body &&
+                jogador.body.blocked.down
+            ) {
+
+                jogador.setVelocityY(
+                    -500
+                );
+            }
+        },
+        { passive: false }
+    );
+}
+
+</script>
+
+</body>
+</html>
