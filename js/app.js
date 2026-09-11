@@ -16,8 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     btnAventura.onclick = function () { window.location.href="games/aventura/";};
 
-    btnCorridas.onclick = function () {
-        alert("🏎️ CORRIDAS\n\nO modo de corridas será iniciado em breve!");
+    btnCorridas.onclick = function () {window.location.href="games/corrida";
     };
 
     btnDesafios.onclick = function () {
