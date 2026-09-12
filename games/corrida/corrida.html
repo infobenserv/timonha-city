@@ -1029,8 +1029,6 @@
     </button>
 
 </div>
-```
-
 </div>
 
 <script type="module">
@@ -1131,24 +1129,194 @@
     ========================== */
 
     let velocidade = 0;
-
     let velocidadeMaxima = 12;
-
     let acelerando = false;
-
     let freando = false;
-
     let esquerda = false;
-
     let direita = false;
-
     let posicaoX = 50;
-
     let corridaTerminou = false;
-
     let inicioCorrida =
         performance.now();
+/* =========================
+   COLISÕES
+========================= */
 
+let invulneravel = false;
+
+let tempoUltimaColisao = 0;
+
+const tempoEntreColisoes = 800;
+
+
+/*
+ * Obtém a área ocupada por um elemento
+ */
+function obterArea(elemento) {
+
+    return elemento.getBoundingClientRect();
+
+}
+
+
+/*
+ * Verifica se dois objetos estão colidindo
+ */
+function estaoColidindo(areaA, areaB) {
+
+    return (
+
+        areaA.left < areaB.right &&
+
+        areaA.right > areaB.left &&
+
+        areaA.top < areaB.bottom &&
+
+        areaA.bottom > areaB.top
+
+    );
+
+}
+
+
+/*
+ * Verifica todos os obstáculos
+ */
+function verificarColisoes() {
+
+    if (corridaTerminou) {
+
+        return;
+
+    }
+
+
+    if (invulneravel) {
+
+        return;
+
+    }
+
+
+    const agora =
+        performance.now();
+
+
+    if (
+        agora - tempoUltimaColisao
+        < tempoEntreColisoes
+    ) {
+
+        return;
+
+    }
+
+
+    const areaCarro =
+        obterArea(carro);
+
+
+    const obstaculos = [
+
+        document.getElementById(
+            "obstaculo1"
+        ),
+
+        document.getElementById(
+            "obstaculo2"
+        ),
+
+        document.getElementById(
+            "obstaculo3"
+        )
+
+    ];
+
+
+    for (
+        const obstaculo
+        of obstaculos
+    ) {
+
+        const areaObstaculo =
+            obterArea(obstaculo);
+
+
+        if (
+            estaoColidindo(
+                areaCarro,
+                areaObstaculo
+            )
+        ) {
+
+            acontecerColisao(
+                obstaculo
+            );
+
+            break;
+
+        }
+
+    }
+
+}
+
+
+/*
+ * O que acontece quando bate
+ */
+function acontecerColisao(obstaculo) {
+
+    tempoUltimaColisao =
+        performance.now();
+
+
+    /*
+     * Reduz bastante a velocidade
+     */
+    velocidade *= 0.25;
+
+
+    /*
+     * Pequeno efeito visual
+     */
+    carro.style.transition =
+        "transform .08s";
+    carro.style.transform =
+        "translateX(-50%) rotate(-10deg)";
+    /*
+     * Obstáculo balança
+     */
+    obstaculo.style.transition =
+        "transform .12s";
+    obstaculo.style.transform =
+        "rotate(15deg)";
+    /*
+     * Pequena invulnerabilidade
+     * para evitar múltiplas colisões
+     */
+    invulneravel = true;
+
+
+    /*
+     * Efeito visual no carro
+     */
+    carro.style.filter =
+        "brightness(1.8)";
+    setTimeout(() => {
+        carro.style.filter =
+            "brightness(1)";
+        carro.style.transform =
+            "translateX(-50%)";
+    }, 180);
+    setTimeout(() => {
+        obstaculo.style.transform =
+            "rotate(0deg)";
+    }, 250);
+    setTimeout(() => {
+        invulneravel = false;
+    }, tempoEntreColisoes);
+}
 
     /* =========================
        CONTROLES
