@@ -915,15 +915,13 @@
                 "Aqui construiremos a campanha principal, as fases, as corridas, os rivais e a evolução do jogador."
             );
         });
-    document
-        .getElementById("btnGaragem")
-        .addEventListener("click", () => {
-            abrirModulo(
-                "GARAGEM",
-                "Aqui ficará a garagem, os carros, melhorias, personalização e estatísticas dos veículos."
-            );
-        });
+   document
+    .getElementById("btnGaragem")
+    .addEventListener("click", () => {
 
+        window.location.href = "garagem.html";
+
+    });
 
     document
         .getElementById("btnMultiplayer")
