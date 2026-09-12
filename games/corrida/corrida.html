@@ -1,818 +1,837 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
+
 <head>
+
 <meta charset="UTF-8">
+
 <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+name="viewport"
+content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+
+>
+
 <title>Street Racing - Corrida</title>
+
 <style>
-    * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+html,
+body{
+
+    width:100%;
+    height:100%;
+
+    overflow:hidden;
+
+    background:#050505;
+
+    font-family:Arial,Helvetica,sans-serif;
+
+    touch-action:none;
+
+    color:white;
+}
+
+
+/* ==================================================
+   ÁREA DO JOGO
+================================================== */
+
+#jogo{
+
+    position:fixed;
+
+    inset:0;
+
+    width:100%;
+    height:100%;
+
+    overflow:hidden;
+
+    background:
+        linear-gradient(
+            #26333d 0%,
+            #8d9ca3 43%,
+            #414141 44%,
+            #151515 100%
+        );
+}
+
+
+/* ==================================================
+   CÉU
+================================================== */
+
+.ceu{
+
+    position:absolute;
+
+    left:0;
+    top:0;
+
+    width:100%;
+    height:48%;
+
+    background:
+        linear-gradient(
+            #26333d,
+            #8d9ca3
+        );
+
+    z-index:0;
+}
+
+
+.sol{
+
+    position:absolute;
+
+    width:70px;
+    height:70px;
+
+    border-radius:50%;
+
+    background:#eee;
+
+    right:15%;
+    top:12%;
+
+    box-shadow:
+        0 0 50px rgba(255,255,255,.6);
+
+    z-index:0;
+}
+
+
+/* ==================================================
+   CIDADE
+================================================== */
+
+.cidade{
+
+    position:absolute;
+
+    bottom:52%;
+
+    left:0;
+
+    width:100%;
+    height:22%;
+
+    display:flex;
+
+    align-items:flex-end;
+
+    gap:5px;
+
+    z-index:1;
+
+    opacity:.8;
+}
+
+
+.predio{
+
+    background:#202020;
+
+    border:1px solid #333;
+
+    width:7%;
+
+    min-width:40px;
+}
+
+
+.predio:nth-child(1){height:60%;}
+.predio:nth-child(2){height:90%;}
+.predio:nth-child(3){height:45%;}
+.predio:nth-child(4){height:75%;}
+.predio:nth-child(5){height:100%;}
+.predio:nth-child(6){height:55%;}
+.predio:nth-child(7){height:80%;}
+.predio:nth-child(8){height:50%;}
+.predio:nth-child(9){height:70%;}
+.predio:nth-child(10){height:95%;}
+
+
+/* ==================================================
+   PISTA
+================================================== */
+
+.pista{
+
+    position:absolute;
+
+    left:50%;
+
+    top:20%;
+
+    transform:
+        translateX(-50%)
+        perspective(450px)
+        rotateX(55deg);
+
+    transform-origin:bottom;
+
+    width:48%;
+
+    height:100%;
+
+    background:#252525;
+
+    border-left:7px solid #bbb;
+
+    border-right:7px solid #bbb;
+
+    z-index:2;
+
+    overflow:hidden;
+}
+
+
+.faixa{
+
+    position:absolute;
+
+    left:50%;
+
+    top:0;
+
+    transform:translateX(-50%);
+
+    width:8px;
+
+    height:100%;
+
+    background:
+        repeating-linear-gradient(
+            to bottom,
+            transparent 0px,
+            transparent 80px,
+            #eee 80px,
+            #eee 145px
+        );
+
+    opacity:.75;
+}
+
+
+.faixa-lateral{
+
+    position:absolute;
+
+    width:5px;
+
+    height:100%;
+
+    top:0;
+
+    background:#eee;
+}
+
+
+.faixa-lateral.esquerda{
+    left:24%;
+}
+
+
+.faixa-lateral.direita{
+    right:24%;
+}
+
+
+/* ==================================================
+   OBSTÁCULOS
+================================================== */
+
+.obstaculo{
+
+    position:absolute;
+
+    z-index:10;
+
+    width:45px;
+
+    height:45px;
+
+    background:#b9b9b9;
+
+    border:4px solid #333;
+
+    box-shadow:
+        0 8px 10px rgba(0,0,0,.5);
+
+    transition:
+        transform .1s linear;
+}
+
+
+.cone{
+
+    width:0;
+    height:0;
+
+    border-left:20px solid transparent;
+
+    border-right:20px solid transparent;
+
+    border-bottom:50px solid #d86d20;
+
+    background:transparent;
+
+    border-top:0;
+
+    box-shadow:none;
+}
+
+
+#obstaculo1{
+
+    left:42%;
+
+    top:-20%;
+}
+
+
+#obstaculo2{
+
+    left:62%;
+
+    top:-220%;
+}
+
+
+#obstaculo3{
+
+    left:32%;
+
+    top:-420%;
+}
+
+
+/* ==================================================
+   LINHA DE CHEGADA
+================================================== */
+
+#chegada{
+
+    position:absolute;
+
+    width:45%;
+
+    height:35px;
+
+    left:27.5%;
+
+    top:31%;
+
+    z-index:4;
+
+    background:
+        repeating-linear-gradient(
+            90deg,
+            #fff 0px,
+            #fff 25px,
+            #111 25px,
+            #111 50px
+        );
+
+    border-top:2px solid #111;
+
+    border-bottom:2px solid #111;
+
+    transform:
+        perspective(300px)
+        rotateX(45deg);
+}
+
+
+/* ==================================================
+   CARRO
+================================================== */
+
+#carro{
+
+    position:absolute;
+
+    width:80px;
+
+    height:135px;
+
+    left:50%;
+
+    bottom:14%;
+
+    transform:
+        translateX(-50%);
+
+    z-index:20;
+
+    transition:
+        transform .05s linear,
+        filter .1s;
+}
+
+
+.carro-corpo{
+
+    position:absolute;
+
+    width:64px;
+
+    height:105px;
+
+    left:8px;
+
+    top:18px;
+
+    background:
+        linear-gradient(
+            90deg,
+            #555,
+            #111,
+            #555
+        );
+
+    border:2px solid #999;
+
+    border-radius:
+        25px 25px 12px 12px;
+
+    box-shadow:
+        0 12px 20px rgba(0,0,0,.7);
+}
+
+
+.carro-teto{
+
+    position:absolute;
+
+    width:48px;
+
+    height:58px;
+
+    left:16px;
+
+    top:27px;
+
+    background:#111;
+
+    border:2px solid #666;
+
+    border-radius:
+        15px 15px 7px 7px;
+}
+
+
+.carro-vidro{
+
+    position:absolute;
+
+    width:38px;
+
+    height:40px;
+
+    left:21px;
+
+    top:32px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #33444e,
+            #101820
+        );
+
+    border-radius:
+        12px 12px 4px 4px;
+}
+
+
+.roda{
+
+    position:absolute;
+
+    width:13px;
+
+    height:35px;
+
+    background:#050505;
+
+    border-radius:8px;
+
+    z-index:2;
+}
+
+
+.roda1{
+    left:-3px;
+    top:32px;
+}
+
+
+.roda2{
+    right:-3px;
+    top:32px;
+}
+
+
+.roda3{
+    left:-3px;
+    bottom:18px;
+}
+
+
+.roda4{
+    right:-3px;
+    bottom:18px;
+}
+
+
+.farol{
+
+    position:absolute;
+
+    width:12px;
+    height:7px;
+
+    background:#eee;
+
+    border-radius:50%;
+
+    top:17px;
+
+    box-shadow:
+        0 0 10px #fff;
+}
+
+
+.farol.esquerdo{
+    left:15px;
+}
+
+
+.farol.direito{
+    right:15px;
+}
+
+
+/* ==================================================
+   EFEITO DE COLISÃO
+================================================== */
+
+#impacto{
+
+    position:fixed;
+
+    inset:0;
+
+    z-index:250;
+
+    pointer-events:none;
+
+    display:none;
+
+    background:
+        radial-gradient(
+            circle,
+            rgba(255,255,255,.55),
+            rgba(255,80,0,.18),
+            transparent 65%
+        );
+}
+
+
+/* ==================================================
+   HUD
+================================================== */
+
+#hud{
+
+    position:fixed;
+
+    top:15px;
+
+    left:15px;
+
+    right:15px;
+
+    z-index:100;
+
+    display:flex;
+
+    justify-content:space-between;
+
+    pointer-events:none;
+}
+
+
+.hud-box{
+
+    min-width:110px;
+
+    padding:10px 14px;
+
+    border-radius:9px;
+
+    background:
+        rgba(0,0,0,.75);
+
+    border:
+        1px solid rgba(255,255,255,.15);
+
+    text-align:center;
+}
+
+
+.hud-box small{
+
+    display:block;
+
+    color:#888;
+
+    font-size:10px;
+
+    letter-spacing:1px;
+}
+
+
+.hud-box strong{
+
+    font-size:20px;
+}
+
+
+/* ==================================================
+   VELOCÍMETRO
+================================================== */
+
+#velocimetro{
+
+    position:fixed;
+
+    right:18px;
+
+    bottom:18px;
+
+    z-index:100;
+
+    width:115px;
+
+    height:115px;
+
+    border-radius:50%;
+
+    background:
+        radial-gradient(
+            circle,
+            #202020,
+            #050505
+        );
+
+    border:3px solid #777;
+
+    display:flex;
+
+    flex-direction:column;
+
+    align-items:center;
+
+    justify-content:center;
+}
+
+
+#velocidade{
+
+    font-size:32px;
+
+    font-weight:bold;
+}
+
+
+#kmh{
+
+    color:#777;
+
+    font-size:11px;
+}
+
+
+/* ==================================================
+   CONTROLES
+================================================== */
+
+#controles{
+
+    position:fixed;
+
+    left:0;
+    right:0;
+
+    bottom:18px;
+
+    z-index:150;
+
+    display:flex;
+
+    justify-content:space-between;
+
+    padding:0 18px;
+
+    pointer-events:none;
+}
+
+
+.grupo-controle{
+
+    display:flex;
+
+    gap:10px;
+
+    pointer-events:auto;
+}
+
+
+.controle{
+
+    width:70px;
+
+    height:70px;
+
+    border-radius:50%;
+
+    border:
+        2px solid rgba(255,255,255,.3);
+
+    background:
+        rgba(0,0,0,.65);
+
+    color:white;
+
+    font-size:26px;
+
+    user-select:none;
+
+    -webkit-user-select:none;
+
+    touch-action:none;
+}
+
+
+.controle:active{
+
+    background:
+        rgba(255,255,255,.25);
+
+    transform:scale(.95);
+}
+
+
+.controle.acelerar{
+
+    width:85px;
+
+    height:85px;
+}
+
+
+/* ==================================================
+   RESULTADO
+================================================== */
+
+#resultado{
+
+    position:fixed;
+
+    inset:0;
+
+    z-index:300;
+
+    display:none;
+
+    align-items:center;
+
+    justify-content:center;
+
+    background:
+        rgba(0,0,0,.85);
+
+    padding:20px;
+}
+
+
+.resultado-box{
+
+    width:100%;
+
+    max-width:430px;
+
+    text-align:center;
+
+    background:#111;
+
+    border:1px solid #444;
+
+    border-radius:18px;
+
+    padding:35px 25px;
+}
+
+
+.resultado-box h1{
+
+    font-size:42px;
+
+    margin-bottom:15px;
+}
+
+
+.resultado-box p{
+
+    color:#999;
+
+    margin-bottom:25px;
+
+    line-height:1.6;
+}
+
+
+.btn-resultado{
+
+    width:100%;
+
+    padding:15px;
+
+    border:none;
+
+    border-radius:9px;
+
+    background:white;
+
+    color:black;
+
+    font-weight:bold;
+
+    cursor:pointer;
+}
+
+
+@media (min-width:900px){
+
+    #controles{
+        opacity:.35;
     }
-    html,
-    body {
 
-        width: 100%;
-        height: 100%;
-
-        overflow: hidden;
-
-        background: #050505;
-
-        font-family: Arial, Helvetica, sans-serif;
-
-        touch-action: none;
-    }
-    /* =========================
-       ÁREA DO JOGO
-    ========================= */
-
-    #jogo {
-
-        position: fixed;
-
-        inset: 0;
-
-        width: 100%;
-        height: 100%;
-
-        background:
-            linear-gradient(
-                #5d6870 0%,
-                #aab2b5 45%,
-                #303030 46%,
-                #161616 100%
-            );
-
-        overflow: hidden;
-    }
-
-
-    /* =========================
-       CÉU
-    ========================= */
-
-    .ceu {
-
-        position: absolute;
-
-        left: 0;
-        top: 0;
-
-        width: 100%;
-        height: 48%;
-
-        background:
-            linear-gradient(
-                #26333d,
-                #8d9ca3
-            );
-
-        z-index: 0;
-    }
-
-
-    .sol {
-
-        position: absolute;
-
-        width: 70px;
-        height: 70px;
-
-        border-radius: 50%;
-
-        background: #eee;
-
-        right: 15%;
-        top: 12%;
-
-        box-shadow:
-            0 0 50px rgba(255,255,255,.6);
-    }
-
-
-    /* =========================
-       CIDADE
-    ========================= */
-
-    .cidade {
-
-        position: absolute;
-
-        bottom: 52%;
-
-        left: 0;
-
-        width: 100%;
-
-        height: 22%;
-
-        display: flex;
-
-        align-items: flex-end;
-
-        gap: 5px;
-
-        z-index: 1;
-
-        opacity: .8;
-    }
-
-
-    .predio {
-
-        background: #202020;
-
-        border: 1px solid #333;
-
-        width: 7%;
-
-        min-width: 40px;
-    }
-
-
-    .predio:nth-child(1) {
-        height: 60%;
-    }
-
-    .predio:nth-child(2) {
-        height: 90%;
-    }
-
-    .predio:nth-child(3) {
-        height: 45%;
-    }
-
-    .predio:nth-child(4) {
-        height: 75%;
-    }
-
-    .predio:nth-child(5) {
-        height: 100%;
-    }
-
-    .predio:nth-child(6) {
-        height: 55%;
-    }
-
-    .predio:nth-child(7) {
-        height: 80%;
-    }
-
-    .predio:nth-child(8) {
-        height: 50%;
-    }
-
-    .predio:nth-child(9) {
-        height: 70%;
-    }
-
-    .predio:nth-child(10) {
-        height: 95%;
-    }
-
-
-    /* =========================
-       PISTA
-    ========================= */
-
-    .pista {
-
-        position: absolute;
-
-        left: 50%;
-
-        top: 20%;
-
-        transform:
-            translateX(-50%)
-            perspective(450px)
-            rotateX(55deg);
-
-        transform-origin: bottom;
-
-        width: 48%;
-
-        height: 100%;
-
-        background:
-            #252525;
-
-        border-left: 7px solid #bbb;
-
-        border-right: 7px solid #bbb;
-
-        z-index: 2;
-    }
-
-
-    .faixa {
-
-        position: absolute;
-
-        left: 50%;
-
-        top: 0;
-
-        transform: translateX(-50%);
-
-        width: 8px;
-
-        height: 100%;
-
-        background:
-            repeating-linear-gradient(
-                to bottom,
-                transparent 0px,
-                transparent 80px,
-                #eee 80px,
-                #eee 145px
-            );
-
-        opacity: .75;
-    }
-
-
-    .faixa-lateral {
-
-        position: absolute;
-
-        width: 5px;
-
-        height: 100%;
-
-        top: 0;
-
-        background: #eee;
-    }
-
-
-    .faixa-lateral.esquerda {
-        left: 24%;
-    }
-
-
-    .faixa-lateral.direita {
-        right: 24%;
-    }
-
-
-    /* =========================
-       ELEMENTOS DA PISTA
-    ========================= */
-
-    .obstaculo {
-
-        position: absolute;
-
-        z-index: 5;
-
-        width: 45px;
-
-        height: 45px;
-
-        background: #b9b9b9;
-
-        border: 4px solid #333;
-
-        box-shadow:
-            0 8px 10px rgba(0,0,0,.5);
-    }
-
-
-    .cone {
-
-        width: 0;
-        height: 0;
-
-        border-left: 20px solid transparent;
-        border-right: 20px solid transparent;
-
-        border-bottom: 50px solid #d86d20;
-
-        background: transparent;
-
-        border-top: 0;
-
-        box-shadow: none;
-    }
-
-
-    #obstaculo1 {
-
-        left: 42%;
-
-        top: 50%;
-    }
-
-
-    #obstaculo2 {
-
-        left: 62%;
-
-        top: 65%;
-    }
-
-
-    #obstaculo3 {
-
-        left: 32%;
-
-        top: 75%;
-    }
-
-
-    /* =========================
-       LINHA DE CHEGADA
-    ========================= */
-
-    #chegada {
-
-        position: absolute;
-
-        width: 45%;
-
-        height: 35px;
-
-        left: 27.5%;
-
-        top: 31%;
-
-        z-index: 4;
-
-        background:
-            repeating-linear-gradient(
-                90deg,
-                #fff 0px,
-                #fff 25px,
-                #111 25px,
-                #111 50px
-            );
-
-        border-top: 2px solid #111;
-
-        border-bottom: 2px solid #111;
-
-        transform:
-            perspective(300px)
-            rotateX(45deg);
-    }
-
-
-    /* =========================
-       CARRO
-    ========================= */
-
-    #carro {
-
-        position: absolute;
-
-        width: 80px;
-
-        height: 135px;
-
-        left: 50%;
-
-        bottom: 14%;
-
-        transform:
-            translateX(-50%);
-
-        z-index: 20;
-
-        transition:
-            transform .05s linear;
-    }
-
-
-    .carro-corpo {
-
-        position: absolute;
-
-        width: 64px;
-
-        height: 105px;
-
-        left: 8px;
-
-        top: 18px;
-
-        background:
-            linear-gradient(
-                90deg,
-                #555,
-                #111,
-                #555
-            );
-
-        border: 2px solid #999;
-
-        border-radius:
-            25px 25px 12px 12px;
-
-        box-shadow:
-            0 12px 20px rgba(0,0,0,.7);
-    }
-
-
-    .carro-teto {
-
-        position: absolute;
-
-        width: 48px;
-
-        height: 58px;
-
-        left: 16px;
-
-        top: 27px;
-
-        background: #111;
-
-        border: 2px solid #666;
-
-        border-radius: 15px 15px 7px 7px;
-    }
-
-
-    .carro-vidro {
-
-        position: absolute;
-
-        width: 38px;
-
-        height: 40px;
-
-        left: 21px;
-
-        top: 32px;
-
-        background:
-            linear-gradient(
-                135deg,
-                #33444e,
-                #101820
-            );
-
-        border-radius: 12px 12px 4px 4px;
-    }
-
-
-    .roda {
-
-        position: absolute;
-
-        width: 13px;
-
-        height: 35px;
-
-        background: #050505;
-
-        border-radius: 8px;
-
-        z-index: 2;
-    }
-
-
-    .roda1 {
-        left: -3px;
-        top: 32px;
-    }
-
-
-    .roda2 {
-        right: -3px;
-        top: 32px;
-    }
-
-
-    .roda3 {
-        left: -3px;
-        bottom: 18px;
-    }
-
-
-    .roda4 {
-        right: -3px;
-        bottom: 18px;
-    }
-
-
-    .farol {
-
-        position: absolute;
-
-        width: 12px;
-        height: 7px;
-
-        background: #eee;
-
-        border-radius: 50%;
-
-        top: 17px;
-
-        box-shadow:
-            0 0 10px #fff;
-    }
-
-
-    .farol.esquerdo {
-        left: 15px;
-    }
-
-
-    .farol.direito {
-        right: 15px;
-    }
-
-
-    /* =========================
-       HUD
-    ========================= */
-
-    #hud {
-
-        position: fixed;
-
-        top: 15px;
-
-        left: 15px;
-
-        right: 15px;
-
-        z-index: 100;
-
-        display: flex;
-
-        justify-content: space-between;
-
-        pointer-events: none;
-    }
-
-
-    .hud-box {
-
-        min-width: 110px;
-
-        padding: 10px 14px;
-
-        border-radius: 9px;
-
-        background:
-            rgba(0,0,0,.75);
-
-        border:
-            1px solid rgba(255,255,255,.15);
-
-        text-align: center;
-    }
-
-
-    .hud-box small {
-
-        display: block;
-
-        color: #888;
-
-        font-size: 10px;
-
-        letter-spacing: 1px;
-    }
-
-
-    .hud-box strong {
-
-        font-size: 20px;
-    }
-
-
-    /* =========================
-       VELOCIDADE
-    ========================= */
-
-    #velocimetro {
-
-        position: fixed;
-
-        right: 18px;
-
-        bottom: 18px;
-
-        z-index: 100;
-
-        width: 115px;
-
-        height: 115px;
-
-        border-radius: 50%;
-
-        background:
-            radial-gradient(
-                circle,
-                #202020,
-                #050505
-            );
-
-        border: 3px solid #777;
-
-        display: flex;
-
-        flex-direction: column;
-
-        align-items: center;
-
-        justify-content: center;
-    }
-
-
-    #velocidade {
-
-        font-size: 32px;
-
-        font-weight: bold;
-    }
-
-
-    #kmh {
-
-        color: #777;
-
-        font-size: 11px;
-    }
-
-
-    /* =========================
-       CONTROLES MOBILE
-    ========================= */
-
-    #controles {
-
-        position: fixed;
-
-        left: 0;
-        right: 0;
-
-        bottom: 18px;
-
-        z-index: 150;
-
-        display: flex;
-
-        justify-content: space-between;
-
-        padding: 0 18px;
-
-        pointer-events: none;
-    }
-
-
-    .grupo-controle {
-
-        display: flex;
-
-        gap: 10px;
-
-        pointer-events: auto;
-    }
-
-
-    .controle {
-
-        width: 70px;
-
-        height: 70px;
-
-        border-radius: 50%;
-
-        border: 2px solid rgba(255,255,255,.3);
-
-        background:
-            rgba(0,0,0,.65);
-
-        color: white;
-
-        font-size: 26px;
-
-        user-select: none;
-
-        -webkit-user-select: none;
-
-        touch-action: none;
-    }
-
-
-    .controle:active {
-
-        background:
-            rgba(255,255,255,.25);
-
-        transform: scale(.95);
-    }
-
-
-    .controle.acelerar {
-
-        width: 85px;
-
-        height: 85px;
-    }
-
-
-    /* =========================
-       TELA RESULTADO
-    ========================= */
-
-    #resultado {
-
-        position: fixed;
-
-        inset: 0;
-
-        z-index: 300;
-
-        display: none;
-
-        align-items: center;
-
-        justify-content: center;
-
-        background:
-            rgba(0,0,0,.85);
-
-        padding: 20px;
-    }
-
-
-    .resultado-box {
-
-        width: 100%;
-
-        max-width: 430px;
-
-        text-align: center;
-
-        background: #111;
-
-        border: 1px solid #444;
-
-        border-radius: 18px;
-
-        padding: 35px 25px;
-    }
-
-
-    .resultado-box h1 {
-
-        font-size: 42px;
-
-        margin-bottom: 15px;
-    }
-
-
-    .resultado-box p {
-
-        color: #999;
-
-        margin-bottom: 25px;
-
-        line-height: 1.6;
-    }
-
-
-    .btn-resultado {
-
-        width: 100%;
-
-        padding: 15px;
-
-        border: none;
-
-        border-radius: 9px;
-
-        background: white;
-
-        color: black;
-
-        font-weight: bold;
-
-        cursor: pointer;
-    }
-
-
-    @media (min-width: 900px) {
-
-        #controles {
-
-            opacity: .35;
-        }
-
-    }
+}
 
 </style>
-```
 
 </head>
 
@@ -885,11 +904,15 @@
     <div class="carro-vidro"></div>
 
     <div class="roda roda1"></div>
+
     <div class="roda roda2"></div>
+
     <div class="roda roda3"></div>
+
     <div class="roda roda4"></div>
 
     <div class="farol esquerdo"></div>
+
     <div class="farol direito"></div>
 
 </div>
@@ -897,9 +920,15 @@
 
 </div>
 
-<!-- =========================
+<!-- ==================================================
+     EFEITO DE IMPACTO
+================================================== -->
+
+<div id="impacto"></div>
+
+<!-- ==================================================
      HUD
-========================== -->
+================================================== -->
 
 <div id="hud">
 
@@ -908,7 +937,7 @@
 
     <small>VOLTA</small>
 
-    <strong id="volta">
+    <strong>
         1/1
     </strong>
 
@@ -939,7 +968,9 @@
 
 </div>
 
-<!-- VELOCÍMETRO -->
+<!-- ==================================================
+     VELOCÍMETRO
+================================================== -->
 
 <div id="velocimetro">
 
@@ -955,9 +986,9 @@
 
 </div>
 
-<!-- =========================
+<!-- ==================================================
      CONTROLES
-========================== -->
+================================================== -->
 
 <div id="controles">
 
@@ -1004,9 +1035,9 @@
 
 </div>
 
-<!-- =========================
+<!-- ==================================================
      RESULTADO
-========================== -->
+================================================== -->
 
 <div id="resultado">
 
@@ -1014,7 +1045,7 @@
 <div class="resultado-box">
 
     <h1 id="resultadoTitulo">
-        VITÓRIA
+        🏆 VITÓRIA
     </h1>
 
     <p id="resultadoTexto">
@@ -1029,169 +1060,539 @@
     </button>
 
 </div>
+```
+
 </div>
 
 <script type="module">
 
 
-    /* =========================
-       FIREBASE
-    ========================== */
+/* ==================================================
+   FIREBASE
+================================================== */
 
-    import {
-        initializeApp
+import {
+    initializeApp
+}
+from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+
+
+import {
+    getAuth,
+    onAuthStateChanged
+}
+from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+
+const firebaseConfig = {
+
+    apiKey:
+        "AIzaSyDaAt6kwcnwh6KWFkMdItI_aP-5aNlYiEg",
+
+    authDomain:
+        "jogo-92290.firebaseapp.com",
+
+    projectId:
+        "jogo-92290",
+
+    storageBucket:
+        "jogo-92290.firebasestorage.app",
+
+    messagingSenderId:
+        "237105815783",
+
+    appId:
+        "1:237105815783:web:51616c54633cedc2880242"
+
+};
+
+
+const app =
+    initializeApp(firebaseConfig);
+
+
+const auth =
+    getAuth(app);
+
+
+/* ==================================================
+   AUTENTICAÇÃO
+================================================== */
+
+onAuthStateChanged(
+    auth,
+    (user) => {
+
+        if (!user) {
+
+            window.location.href =
+                "index.html";
+
+        }
+
     }
-    from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+);
 
 
-    import {
-        getAuth,
-        onAuthStateChanged
+/* ==================================================
+   ELEMENTOS
+================================================== */
+
+const carro =
+    document.getElementById("carro");
+
+
+const velocidadeElemento =
+    document.getElementById("velocidade");
+
+
+const tempoElemento =
+    document.getElementById("tempo");
+
+
+const resultado =
+    document.getElementById("resultado");
+
+
+const resultadoTitulo =
+    document.getElementById("resultadoTitulo");
+
+
+const resultadoTexto =
+    document.getElementById("resultadoTexto");
+
+
+const impacto =
+    document.getElementById("impacto");
+
+
+/* ==================================================
+   ESTADO
+================================================== */
+
+let velocidade = 0;
+
+const velocidadeMaxima = 12;
+
+let acelerando = false;
+
+let freando = false;
+
+let esquerda = false;
+
+let direita = false;
+
+let posicaoX = 50;
+
+let corridaTerminou = false;
+
+let inicioCorrida =
+    performance.now();
+
+
+/* ==================================================
+   OBSTÁCULOS
+================================================== */
+
+const obstaculos = [
+
+    document.getElementById(
+        "obstaculo1"
+    ),
+
+    document.getElementById(
+        "obstaculo2"
+    ),
+
+    document.getElementById(
+        "obstaculo3"
+    )
+
+];
+
+
+const dadosObstaculos = [
+
+    {
+        elemento:obstaculos[0],
+        x:42,
+        y:-20,
+        velocidade:.70
+    },
+
+    {
+        elemento:obstaculos[1],
+        x:62,
+        y:-220,
+        velocidade:.90
+    },
+
+    {
+        elemento:obstaculos[2],
+        x:32,
+        y:-420,
+        velocidade:1.10
     }
-    from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+];
 
 
-    const firebaseConfig = {
+let ultimoImpacto = 0;
 
-        apiKey:
-            "AIzaSyDaAt6kwcnwh6KWFkMdItI_aP-5aNlYiEg",
-
-        authDomain:
-            "jogo-92290.firebaseapp.com",
-
-        projectId:
-            "jogo-92290",
-
-        storageBucket:
-            "jogo-92290.firebasestorage.app",
-
-        messagingSenderId:
-            "237105815783",
-
-        appId:
-            "1:237105815783:web:51616c54633cedc2880242"
-
-    };
+const intervaloImpacto = 700;
 
 
-    const app =
-        initializeApp(firebaseConfig);
+/* ==================================================
+   CONTROLES TOUCH
+================================================== */
+
+function configurarBotao(
+    id,
+    pressionar,
+    soltar
+){
+
+    const botao =
+        document.getElementById(id);
 
 
-    const auth =
-        getAuth(app);
+    botao.addEventListener(
+        "pointerdown",
+        (evento) => {
 
+            evento.preventDefault();
 
-    /* =========================
-       PROTEÇÃO
-    ========================== */
-
-    onAuthStateChanged(
-        auth,
-        (user) => {
-
-            if (!user) {
-
-                window.location.href =
-                    "index.html";
-
-            }
+            pressionar();
 
         }
     );
 
 
-    /* =========================
-       ELEMENTOS
-    ========================== */
+    botao.addEventListener(
+        "pointerup",
+        (evento) => {
 
-    const carro =
-        document.getElementById("carro");
+            evento.preventDefault();
 
-    const velocidadeElemento =
-        document.getElementById("velocidade");
+            soltar();
 
-    const tempoElemento =
-        document.getElementById("tempo");
-
-    const resultado =
-        document.getElementById("resultado");
-
-    const resultadoTitulo =
-        document.getElementById("resultadoTitulo");
-
-    const resultadoTexto =
-        document.getElementById("resultadoTexto");
+        }
+    );
 
 
-    /* =========================
-       ESTADO DO JOGO
-    ========================== */
-
-    let velocidade = 0;
-    let velocidadeMaxima = 12;
-    let acelerando = false;
-    let freando = false;
-    let esquerda = false;
-    let direita = false;
-    let posicaoX = 50;
-    let corridaTerminou = false;
-    let inicioCorrida =
-        performance.now();
-/* =========================
-   COLISÕES
-========================= */
-
-let invulneravel = false;
-
-let tempoUltimaColisao = 0;
-
-const tempoEntreColisoes = 800;
+    botao.addEventListener(
+        "pointercancel",
+        soltar
+    );
 
 
-/*
- * Obtém a área ocupada por um elemento
- */
-function obterArea(elemento) {
-
-    return elemento.getBoundingClientRect();
-
-}
-
-
-/*
- * Verifica se dois objetos estão colidindo
- */
-function estaoColidindo(areaA, areaB) {
-
-    return (
-
-        areaA.left < areaB.right &&
-
-        areaA.right > areaB.left &&
-
-        areaA.top < areaB.bottom &&
-
-        areaA.bottom > areaB.top
-
+    botao.addEventListener(
+        "pointerleave",
+        soltar
     );
 
 }
 
 
-/*
- * Verifica todos os obstáculos
- */
-function verificarColisoes() {
+configurarBotao(
+    "acelerar",
 
-    if (corridaTerminou) {
+    () => {
+        acelerando = true;
+    },
+
+    () => {
+        acelerando = false;
+    }
+);
+
+
+configurarBotao(
+    "freio",
+
+    () => {
+        freando = true;
+    },
+
+    () => {
+        freando = false;
+    }
+);
+
+
+configurarBotao(
+    "esquerda",
+
+    () => {
+        esquerda = true;
+    },
+
+    () => {
+        esquerda = false;
+    }
+);
+
+
+configurarBotao(
+    "direita",
+
+    () => {
+        direita = true;
+    },
+
+    () => {
+        direita = false;
+    }
+);
+
+
+/* ==================================================
+   TECLADO
+================================================== */
+
+document.addEventListener(
+    "keydown",
+    (evento) => {
+
+        if (
+            evento.key === "ArrowUp" ||
+            evento.key === "w" ||
+            evento.key === "W"
+        ){
+
+            acelerando = true;
+
+        }
+
+
+        if (
+            evento.key === "ArrowDown" ||
+            evento.key === "s" ||
+            evento.key === "S"
+        ){
+
+            freando = true;
+
+        }
+
+
+        if (
+            evento.key === "ArrowLeft" ||
+            evento.key === "a" ||
+            evento.key === "A"
+        ){
+
+            esquerda = true;
+
+        }
+
+
+        if (
+            evento.key === "ArrowRight" ||
+            evento.key === "d" ||
+            evento.key === "D"
+        ){
+
+            direita = true;
+
+        }
+
+    }
+);
+
+
+document.addEventListener(
+    "keyup",
+    (evento) => {
+
+        if (
+            evento.key === "ArrowUp" ||
+            evento.key === "w" ||
+            evento.key === "W"
+        ){
+
+            acelerando = false;
+
+        }
+
+
+        if (
+            evento.key === "ArrowDown" ||
+            evento.key === "s" ||
+            evento.key === "S"
+        ){
+
+            freando = false;
+
+        }
+
+
+        if (
+            evento.key === "ArrowLeft" ||
+            evento.key === "a" ||
+            evento.key === "A"
+        ){
+
+            esquerda = false;
+
+        }
+
+
+        if (
+            evento.key === "ArrowRight" ||
+            evento.key === "d" ||
+            evento.key === "D"
+        ){
+
+            direita = false;
+
+        }
+
+    }
+);
+
+
+/* ==================================================
+   MOVIMENTO DO CARRO
+================================================== */
+
+function atualizarCarro(){
+
+    if(corridaTerminou){
 
         return;
 
     }
 
 
-    if (invulneravel) {
+    /* ACELERAÇÃO */
+
+    if(acelerando){
+
+        velocidade += .12;
+
+        if(
+            velocidade >
+            velocidadeMaxima
+        ){
+
+            velocidade =
+                velocidadeMaxima;
+
+        }
+
+    }
+    else{
+
+        velocidade -= .035;
+
+        if(velocidade < 0){
+
+            velocidade = 0;
+
+        }
+
+    }
+
+
+    /* FREIO */
+
+    if(freando){
+
+        velocidade -= .25;
+
+        if(velocidade < 0){
+
+            velocidade = 0;
+
+        }
+
+    }
+
+
+    /* DIREÇÃO */
+
+    const forcaDirecao =
+        .35 +
+        velocidade * .035;
+
+
+    if(esquerda){
+
+        posicaoX -=
+            forcaDirecao;
+
+    }
+
+
+    if(direita){
+
+        posicaoX +=
+            forcaDirecao;
+
+    }
+
+
+    /* LIMITES */
+
+    if(posicaoX < 34){
+
+        posicaoX = 34;
+
+    }
+
+
+    if(posicaoX > 66){
+
+        posicaoX = 66;
+
+    }
+
+
+    carro.style.left =
+        posicaoX + "%";
+
+
+    /* INCLINAÇÃO */
+
+    let inclinacao = 0;
+
+
+    if(esquerda){
+
+        inclinacao = -7;
+
+    }
+
+
+    if(direita){
+
+        inclinacao = 7;
+
+    }
+
+
+    carro.style.transform =
+        `translateX(-50%) rotate(${inclinacao}deg)`;
+
+
+    /* VELOCÍMETRO */
+
+    velocidadeElemento.textContent =
+        Math.round(
+            velocidade * 18
+        );
+
+}
+
+
+/* ==================================================
+   TEMPO
+================================================== */
+
+function atualizarTempo(){
+
+    if(corridaTerminou){
 
         return;
 
@@ -1202,604 +1603,455 @@ function verificarColisoes() {
         performance.now();
 
 
-    if (
-        agora - tempoUltimaColisao
-        < tempoEntreColisoes
-    ) {
+    const segundos =
+        Math.floor(
+            (
+                agora -
+                inicioCorrida
+            ) / 1000
+        );
+
+
+    const minutos =
+        Math.floor(
+            segundos / 60
+        );
+
+
+    const segundosRestantes =
+        segundos % 60;
+
+
+    tempoElemento.textContent =
+
+        String(minutos)
+            .padStart(2,"0")
+
+        + ":" +
+
+        String(
+            segundosRestantes
+        )
+        .padStart(2,"0");
+
+}
+
+
+/* ==================================================
+   ANIMAÇÃO DA PISTA
+================================================== */
+
+let deslocamentoPista = 0;
+
+
+function animarPista(){
+
+    deslocamentoPista +=
+        velocidade * 2.5;
+
+
+    const faixa =
+        document.querySelector(
+            ".faixa"
+        );
+
+
+    faixa.style.backgroundPosition =
+        `0 ${deslocamentoPista}px`;
+
+
+    /* ==================================================
+       MOVIMENTO DOS OBSTÁCULOS
+    ================================================== */
+
+    dadosObstaculos.forEach(
+        (obstaculo) => {
+
+            if(velocidade > 0){
+
+                obstaculo.y +=
+
+                    velocidade *
+                    obstaculo.velocidade *
+                    .9;
+
+            }
+
+
+            obstaculo.elemento.style.left =
+                obstaculo.x + "%";
+
+
+            obstaculo.elemento.style.top =
+                obstaculo.y + "%";
+
+
+            /* SAIU DA TELA */
+
+            if(
+                obstaculo.y >
+                110
+            ){
+
+                obstaculo.y =
+                    -20 -
+                    Math.random() * 300;
+
+
+                obstaculo.x =
+                    36 +
+                    Math.random() * 28;
+
+
+                obstaculo.elemento.style.transform =
+                    "rotate(0deg) scale(1)";
+
+            }
+
+        }
+    );
+
+
+    verificarColisoes();
+
+}
+
+
+/* ==================================================
+   COLISÕES
+================================================== */
+
+function verificarColisoes(){
+
+    if(corridaTerminou){
 
         return;
 
     }
 
 
-    const areaCarro =
-        obterArea(carro);
-
-
-    const obstaculos = [
-
-        document.getElementById(
-            "obstaculo1"
-        ),
-
-        document.getElementById(
-            "obstaculo2"
-        ),
-
-        document.getElementById(
-            "obstaculo3"
-        )
-
-    ];
-
-
-    for (
-        const obstaculo
-        of obstaculos
-    ) {
-
-        const areaObstaculo =
-            obterArea(obstaculo);
-
-
-        if (
-            estaoColidindo(
-                areaCarro,
-                areaObstaculo
-            )
-        ) {
-
-            acontecerColisao(
-                obstaculo
-            );
-
-            break;
-
-        }
-
-    }
-
-}
-
-
-/*
- * O que acontece quando bate
- */
-function acontecerColisao(obstaculo) {
-
-    tempoUltimaColisao =
+    const agora =
         performance.now();
 
 
-    /*
-     * Reduz bastante a velocidade
-     */
-    velocidade *= 0.25;
+    if(
+        agora -
+        ultimoImpacto <
+        intervaloImpacto
+    ){
+
+        return;
+
+    }
 
 
     /*
-     * Pequeno efeito visual
-     */
+       Área aproximada do carro
+    */
+
+    const carroEsquerda =
+        posicaoX - 4;
+
+
+    const carroDireita =
+        posicaoX + 4;
+
+
+    /*
+       Região vertical
+       ocupada pelo carro
+    */
+
+    const carroTopo = 78;
+
+    const carroBase = 94;
+
+
+    dadosObstaculos.forEach(
+        (obstaculo) => {
+
+            const obstaculoEsquerda =
+                obstaculo.x - 3;
+
+
+            const obstaculoDireita =
+                obstaculo.x + 3;
+
+
+            const obstaculoTopo =
+                obstaculo.y;
+
+
+            const obstaculoBase =
+                obstaculo.y + 8;
+
+
+            const colisaoHorizontal =
+
+                carroEsquerda <
+                obstaculoDireita
+
+                &&
+
+                carroDireita >
+                obstaculoEsquerda;
+
+
+            const colisaoVertical =
+
+                carroTopo <
+                obstaculoBase
+
+                &&
+
+                carroBase >
+                obstaculoTopo;
+
+
+            if(
+                colisaoHorizontal &&
+                colisaoVertical
+            ){
+
+                acontecerColisao(
+                    obstaculo
+                );
+
+            }
+
+        }
+    );
+
+}
+
+
+/* ==================================================
+   IMPACTO
+================================================== */
+
+function acontecerColisao(
+    obstaculo
+){
+
+    const agora =
+        performance.now();
+
+
+    ultimoImpacto =
+        agora;
+
+
+    /*
+       PERDA DE VELOCIDADE
+    */
+
+    velocidade *= .25;
+
+
+    /*
+       EFEITO NO CARRO
+    */
+
     carro.style.transition =
         "transform .08s";
+
+
     carro.style.transform =
-        "translateX(-50%) rotate(-10deg)";
-    /*
-     * Obstáculo balança
-     */
-    obstaculo.style.transition =
-        "transform .12s";
-    obstaculo.style.transform =
-        "rotate(15deg)";
-    /*
-     * Pequena invulnerabilidade
-     * para evitar múltiplas colisões
-     */
-    invulneravel = true;
+        "translateX(-50%) rotate(-12deg)";
 
 
-    /*
-     * Efeito visual no carro
-     */
     carro.style.filter =
-        "brightness(1.8)";
-    setTimeout(() => {
-        carro.style.filter =
-            "brightness(1)";
-        carro.style.transform =
-            "translateX(-50%)";
-    }, 180);
-    setTimeout(() => {
-        obstaculo.style.transform =
-            "rotate(0deg)";
-    }, 250);
-    setTimeout(() => {
-        invulneravel = false;
-    }, tempoEntreColisoes);
+        "brightness(2)";
+
+
+    /*
+       EFEITO NO OBSTÁCULO
+    */
+
+    obstaculo.elemento.style.transition =
+        "transform .1s";
+
+
+    obstaculo.elemento.style.transform =
+        "rotate(25deg) scale(1.2)";
+
+
+    /*
+       FLASH DE IMPACTO
+    */
+
+    impacto.style.display =
+        "block";
+
+
+    setTimeout(
+        () => {
+
+            impacto.style.display =
+                "none";
+
+        },
+        90
+    );
+
+
+    /*
+       RECUPERA CARRO
+    */
+
+    setTimeout(
+        () => {
+
+            carro.style.transform =
+                "translateX(-50%)";
+
+
+            carro.style.filter =
+                "brightness(1)";
+
+        },
+        180
+    );
+
+
+    /*
+       REPOSICIONA OBSTÁCULO
+    */
+
+    setTimeout(
+        () => {
+
+            obstaculo.y =
+                -30 -
+                Math.random() * 250;
+
+
+            obstaculo.x =
+                36 +
+                Math.random() * 28;
+
+
+            obstaculo.elemento.style.transform =
+                "rotate(0deg) scale(1)";
+
+        },
+        250
+    );
+
 }
 
-    /* =========================
-       CONTROLES
-    ========================== */
 
-    function configurarBotao(
-        id,
-        callbackPressionar,
-        callbackSoltar
-    ) {
+/* ==================================================
+   CHEGADA
+================================================== */
 
-        const botao =
-            document.getElementById(id);
+function verificarChegada(){
 
+    if(corridaTerminou){
 
-        botao.addEventListener(
-            "pointerdown",
-            (evento) => {
-
-                evento.preventDefault();
-
-                callbackPressionar();
-
-            }
-        );
-
-
-        botao.addEventListener(
-            "pointerup",
-            (evento) => {
-
-                evento.preventDefault();
-
-                callbackSoltar();
-
-            }
-        );
-
-
-        botao.addEventListener(
-            "pointercancel",
-            callbackSoltar
-        );
-
-
-        botao.addEventListener(
-            "pointerleave",
-            callbackSoltar
-        );
+        return;
 
     }
 
 
-    configurarBotao(
-        "acelerar",
-        () => acelerando = true,
-        () => acelerando = false
-    );
+    const tempoDecorrido =
 
+        (
+            performance.now()
+            -
+            inicioCorrida
+        ) / 1000;
 
-    configurarBotao(
-        "freio",
-        () => freando = true,
-        () => freando = false
-    );
 
+    /*
+       TESTE DE 35 SEGUNDOS
+    */
 
-    configurarBotao(
-        "esquerda",
-        () => esquerda = true,
-        () => esquerda = false
-    );
+    if(
+        tempoDecorrido >= 35
+        &&
+        velocidade > 1
+    ){
 
+        finalizarCorrida();
 
-    configurarBotao(
-        "direita",
-        () => direita = true,
-        () => direita = false
-    );
+    }
 
+}
 
-    /* =========================
-       TECLADO
-    ========================== */
 
-    document.addEventListener(
-        "keydown",
-        (evento) => {
+/* ==================================================
+   FINALIZAR
+================================================== */
 
-            if (
-                evento.key === "ArrowUp" ||
-                evento.key === "w" ||
-                evento.key === "W"
-            ) {
+function finalizarCorrida(){
 
-                acelerando = true;
+    if(corridaTerminou){
 
-            }
-
-
-            if (
-                evento.key === "ArrowDown" ||
-                evento.key === "s" ||
-                evento.key === "S"
-            ) {
-
-                freando = true;
-
-            }
-
-
-            if (
-                evento.key === "ArrowLeft" ||
-                evento.key === "a" ||
-                evento.key === "A"
-            ) {
-
-                esquerda = true;
-
-            }
-
-
-            if (
-                evento.key === "ArrowRight" ||
-                evento.key === "d" ||
-                evento.key === "D"
-            ) {
-
-                direita = true;
-
-            }
-
-        }
-    );
-
-
-    document.addEventListener(
-        "keyup",
-        (evento) => {
-
-            if (
-                evento.key === "ArrowUp" ||
-                evento.key === "w" ||
-                evento.key === "W"
-            ) {
-
-                acelerando = false;
-
-            }
-
-
-            if (
-                evento.key === "ArrowDown" ||
-                evento.key === "s" ||
-                evento.key === "S"
-            ) {
-
-                freando = false;
-
-            }
-
-
-            if (
-                evento.key === "ArrowLeft" ||
-                evento.key === "a" ||
-                evento.key === "A"
-            ) {
-
-                esquerda = false;
-
-            }
-
-
-            if (
-                evento.key === "ArrowRight" ||
-                evento.key === "d" ||
-                evento.key === "D"
-            ) {
-
-                direita = false;
-
-            }
-
-        }
-    );
-
-
-    /* =========================
-       MOVIMENTO
-    ========================== */
-
-    function atualizarCarro() {
-
-        if (corridaTerminou) {
-
-            return;
-
-        }
-
-
-        /* ACELERAÇÃO */
-
-        if (acelerando) {
-
-            velocidade += 0.12;
-
-            if (
-                velocidade >
-                velocidadeMaxima
-            ) {
-
-                velocidade =
-                    velocidadeMaxima;
-
-            }
-
-        } else {
-
-            velocidade -= 0.035;
-
-            if (velocidade < 0) {
-
-                velocidade = 0;
-
-            }
-
-        }
-
-
-        /* FREIO */
-
-        if (freando) {
-
-            velocidade -= 0.25;
-
-            if (velocidade < 0) {
-
-                velocidade = 0;
-
-            }
-
-        }
-
-
-        /* DIREÇÃO */
-
-        if (esquerda) {
-
-            posicaoX -=
-                0.35 +
-                velocidade * 0.035;
-
-        }
-
-
-        if (direita) {
-
-            posicaoX +=
-                0.35 +
-                velocidade * 0.035;
-
-        }
-
-
-        /* LIMITES DA PISTA */
-
-        if (posicaoX < 34) {
-
-            posicaoX = 34;
-
-        }
-
-
-        if (posicaoX > 66) {
-
-            posicaoX = 66;
-
-        }
-
-
-        carro.style.left =
-            posicaoX + "%";
-
-
-        /*
-         * Inclinação visual
-         */
-
-        let inclinacao = 0;
-
-
-        if (esquerda) {
-
-            inclinacao = -7;
-
-        }
-
-
-        if (direita) {
-
-            inclinacao = 7;
-
-        }
-
-
-        carro.style.transform =
-            `translateX(-50%) rotate(${inclinacao}deg)`;
-
-
-        velocidadeElemento.textContent =
-            Math.round(
-                velocidade * 18
-            );
+        return;
 
     }
 
 
-    /* =========================
-       CRONÔMETRO
-    ========================== */
+    corridaTerminou =
+        true;
 
-    function atualizarTempo() {
 
-        if (corridaTerminou) {
+    resultadoTitulo.textContent =
+        "🏆 VITÓRIA";
 
-            return;
+
+    resultadoTexto.textContent =
+        "Você venceu a primeira corrida de teste! Esta será a base para o sistema de carreira.";
+
+
+    resultado.style.display =
+        "flex";
+
+}
+
+
+/* ==================================================
+   VOLTAR PARA GARAGEM
+================================================== */
+
+document
+    .getElementById(
+        "btnResultado"
+    )
+    .addEventListener(
+        "click",
+        () => {
+
+            window.location.href =
+                "garagem.html";
 
         }
+    );
 
 
-        const agora =
-            performance.now();
+/* ==================================================
+   LOOP PRINCIPAL
+================================================== */
 
+function loop(){
 
-        const segundos =
-            Math.floor(
-                (agora - inicioCorrida)
-                / 1000
-            );
-
-
-        const minutos =
-            Math.floor(
-                segundos / 60
-            );
-
-
-        const segundosRestantes =
-            segundos % 60;
-
-
-        tempoElemento.textContent =
-
-            String(minutos)
-                .padStart(2, "0")
-
-            + ":" +
-
-            String(segundosRestantes)
-                .padStart(2, "0");
-
-    }
-
-
-    /* =========================
-       ANIMAÇÃO DA PISTA
-    ========================== */
-
-    let deslocamentoPista = 0;
-
-
-    function animarPista() {
-
-        deslocamentoPista +=
-            velocidade * 2.5;
-
-
-        const faixa =
-            document.querySelector(".faixa");
-
-
-        faixa.style.backgroundPosition =
-            `0 ${deslocamentoPista}px`;
-
-    }
-
-
-    /* =========================
-       GAME LOOP
-    ========================== */
-    function loop() {
     atualizarCarro();
+
     atualizarTempo();
+
     animarPista();
-    verificarColisoes();
+
     verificarChegada();
-    requestAnimationFrame(loop);
+
+    requestAnimationFrame(
+        loop
+    );
+
 }
-    /* =========================
-       CHEGADA
-    ========================== */
-
-    function verificarChegada() {
-
-        /*
-         * Nesta primeira versão,
-         * a corrida termina após
-         * aproximadamente 35 segundos
-         * mantendo velocidade.
-         */
-
-        const tempoDecorrido =
-            (
-                performance.now()
-                - inicioCorrida
-            ) / 1000;
 
 
-        if (
-            tempoDecorrido >= 35
-            &&
-            velocidade > 1
-        ) {
-
-            finalizarCorrida();
-
-        }
-
-    }
-
-
-    /* =========================
-       FINAL DA CORRIDA
-    ========================== */
-
-    function finalizarCorrida() {
-
-        if (corridaTerminou) {
-
-            return;
-
-        }
-
-
-        corridaTerminou = true;
-
-
-        resultadoTitulo.textContent =
-            "🏆 VITÓRIA";
-
-
-        resultadoTexto.textContent =
-            "Você venceu a primeira corrida de teste! Esta será a base para o sistema de carreira.";
-
-
-        resultado.style.display =
-            "flex";
-
-    }
-
-
-    /* =========================
-       VOLTAR
-    ========================== */
-
-    document
-        .getElementById("btnResultado")
-        .addEventListener(
-            "click",
-            () => {
-
-                window.location.href =
-                    "garagem.html";
-
-            }
-        );
-
-
-    /* =========================
-       INICIAR
-    ========================== */
-
-    loop();
+loop();
 
 </script>
 
