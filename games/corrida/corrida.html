@@ -1707,22 +1707,14 @@ function acontecerColisao(obstaculo) {
     /* =========================
        GAME LOOP
     ========================== */
-
     function loop() {
-
-        atualizarCarro();
-
-        atualizarTempo();
-
-        animarPista();
-
-        verificarChegada();
-
-        requestAnimationFrame(loop);
-
-    }
-
-
+    atualizarCarro();
+    atualizarTempo();
+    animarPista();
+    verificarColisoes();
+    verificarChegada();
+    requestAnimationFrame(loop);
+}
     /* =========================
        CHEGADA
     ========================== */
