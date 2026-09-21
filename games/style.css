@@ -1,0 +1,40 @@
+*{box-sizing:border-box}
+:root{color-scheme:dark;font-family:system-ui,-apple-system,Segoe UI,sans-serif}
+body{margin:0;background:#080b14;color:#f4f7ff;min-height:100vh}
+button{font:inherit}
+.game{width:min(980px,100%);margin:auto;padding:18px 12px 28px}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+h1{font-size:clamp(24px,5vw,40px);letter-spacing:.16em;margin:0}
+.small-btn,.mobile-controls button{border:1px solid #293249;background:#12192a;color:#fff;border-radius:10px;min-height:44px;padding:8px 13px;font-weight:800}
+.small-btn:hover,.mobile-controls button:hover{background:#1a2540}
+.layout{display:grid;grid-template-columns:170px 300px 180px;justify-content:center;gap:18px;align-items:start}
+.side{display:flex;flex-direction:column;gap:10px}
+.panel{background:#101625;border:1px solid #293249;border-radius:12px;padding:12px}
+.panel>span{display:block;color:#8e9ab5;font-size:11px;letter-spacing:.12em;font-weight:800}
+.panel strong{display:block;font-size:25px;margin-top:3px}
+.preview-panel canvas{display:block;margin:8px auto 0;background:#080c17;border-radius:8px}
+.board-wrap{position:relative}
+#board{display:block;width:300px;height:600px;background:#080c17;border:2px solid #293249;border-radius:12px;outline:none;touch-action:none}
+#board:focus-visible{border-color:#718cff;box-shadow:0 0 0 2px #25336d}
+.message{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(5,8,16,.82);border-radius:12px;text-align:center}
+.message strong{font-size:30px;letter-spacing:.08em}
+.message button{min-height:46px;padding:8px 20px;border:0;border-radius:10px;background:#fff;color:#111;font-weight:900}
+.hidden{display:none}
+.controls p{font-size:12px;color:#aab4ca;margin:7px 0}
+.mobile-controls{display:none;margin-top:10px;gap:7px}
+.control-row{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.control-row button{min-height:48px}
+.control-row .wide{grid-column:span 2}
+@media(max-width:760px){
+  .layout{grid-template-columns:1fr;justify-items:center}
+  .left-side,.right-side{width:min(360px,100%);display:grid;grid-template-columns:repeat(3,1fr)}
+  .left-side .preview-panel{grid-column:span 3}
+  .right-side .preview-panel{display:none}
+  .right-side .controls{grid-column:span 3}
+  .mobile-controls{display:grid}
+}
+@media(max-width:380px){
+  #board{width:270px;height:540px}
+  .mobile-controls{width:270px}
+  .game{padding-left:6px;padding-right:6px}
+}

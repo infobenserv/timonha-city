@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Tetris</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="game">
+  <header class="topbar">
+    <h1>TETRIS</h1>
+    <button id="newGame" class="small-btn">Novo jogo</button>
+  </header>
+
+  <section class="layout">
+    <aside class="side left-side">
+      <div class="panel"><span>PONTOS</span><strong id="score">0</strong></div>
+      <div class="panel"><span>LINHAS</span><strong id="lines">0</strong></div>
+      <div class="panel"><span>NÍVEL</span><strong id="level">1</strong></div>
+
+      <div class="panel preview-panel">
+        <span>HOLD</span>
+        <canvas id="hold" width="120" height="90"></canvas>
+      </div>
+    </aside>
+
+    <div class="center">
+      <div class="board-wrap">
+        <canvas id="board" width="300" height="600" tabindex="0"
+                aria-label="Tabuleiro do Tetris"></canvas>
+        <div id="message" class="message hidden">
+          <strong id="messageTitle">PAUSADO</strong>
+          <button id="messageButton">Continuar</button>
+        </div>
+      </div>
+
+      <div class="mobile-controls">
+        <div class="control-row">
+          <button data-action="left">◀</button>
+          <button data-action="rotateCCW">↺</button>
+          <button data-action="rotateCW">↻</button>
+          <button data-action="right">▶</button>
+        </div>
+        <div class="control-row">
+          <button data-action="down">▼</button>
+          <button data-action="drop" class="wide">HARD DROP ⬇</button>
+          <button data-action="hold">HOLD</button>
+        </div>
+        <div class="control-row">
+          <button data-action="pause" class="wide">PAUSAR</button>
+        </div>
+      </div>
+    </div>
+
+    <aside class="side right-side">
+      <div class="panel preview-panel">
+        <span>PRÓXIMAS</span>
+        <canvas id="next" width="150" height="310"></canvas>
+      </div>
+      <div class="panel controls">
+        <span>TECLADO</span>
+        <p>← → mover</p>
+        <p>↓ soft drop</p>
+        <p>↑ / X girar</p>
+        <p>Z girar ←</p>
+        <p>Espaço hard drop</p>
+        <p>C / Shift hold</p>
+        <p>P / Esc pausar</p>
+      </div>
+    </aside>
+  </section>
+</main>
+<script src="game.js"></script>
+</body>
+</html>
