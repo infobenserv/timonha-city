@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
     btnCorridas.onclick = function () {window.location.href="games/corrida";
     };
 
-    btnDesafios.onclick = function () {window.locatio.href="games/aventura";
+    btnDesafios.onclick = function () {window.location.href="games/desafio";
     };
 
 });
