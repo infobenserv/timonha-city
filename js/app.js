@@ -19,8 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
     btnCorridas.onclick = function () {window.location.href="games/corrida";
     };
 
-    btnDesafios.onclick = function () {
-        alert("🎯 DESAFIOS\n\nOs desafios serão iniciados em breve!");
+    btnDesafios.onclick = function () {window.locatio.href="games/aventura";
     };
 
 });
